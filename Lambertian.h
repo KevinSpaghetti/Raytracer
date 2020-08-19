@@ -5,9 +5,9 @@
 #ifndef RAYTRACER_LAMBERTIAN_H
 #define RAYTRACER_LAMBERTIAN_H
 
-#include "Material.h"
+#include "Material/Material.h"
 #include "consts.h"
-#include "Ray.h"
+#include "Geom/Ray.h"
 #include "main.cpp"
 
 class Lambertian : public Material {

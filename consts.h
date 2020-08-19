@@ -9,8 +9,8 @@
 #include <memory>
 #include <cstdlib>
 #include "glm/glm.hpp"
-#include "Ray.h"
-#include "Material.h"
+#include "Geom/Ray.h"
+#include "Materials/Material.h"
 // Usings
 
 using std::shared_ptr;
@@ -48,13 +48,21 @@ inline vec3 random(double min, double max) {
     return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
 }
 
+inline void get_sphere_uv(const vec3& p, double& u, double& v) {
+    auto phi = atan2(p.z, p.x);
+    auto theta = asin(p.y);
+    u = 1-(phi + pi) / (2*pi);
+    v = (theta + pi/2) / pi;
+}
+
 struct hit_record {
     glm::vec3 p;
     glm::vec3 normal;
     double distance;
     bool front_face;
     shared_ptr<Material> mat_ptr;
-
+    double u;
+    double v;
     inline void set_face_normal(const Ray& r, const glm::vec3& outward_normal){
         front_face = (glm::dot(r.getDirection(), outward_normal) < 0);
         normal = front_face ? outward_normal : -outward_normal;
@@ -63,5 +71,5 @@ struct hit_record {
 
 // Common Headers
 
-#include "Ray.h"
+#include "Geom/Ray.h"
 #endif
