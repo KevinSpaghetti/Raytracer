@@ -4,16 +4,25 @@
 
 #pragma once
 
+#include <glm/vec3.hpp>
+
 struct Vertex {
     float x;
     float y;
     float z;
+
+    glm::vec3 vec(){
+        return glm::vec3(x, y, z);
+    }
 };
 
 struct Normal {
     float i;
     float j;
     float k;
+    glm::vec3 vec(){
+        return glm::vec3(i, j, k);
+    }
 };
 
 struct UV {

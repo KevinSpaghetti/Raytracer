@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/Raytracer.dir/main.cpp.o CMakeFiles/Raytracer.dir/Geom/Ray.cpp.o CMakeFiles/Raytracer.dir/Geom/Sphere.cpp.o CMakeFiles/Raytracer.dir/Hittable_List.cpp.o CMakeFiles/Raytracer.dir/Camera.cpp.o CMakeFiles/Raytracer.dir/Geom/AABB.cpp.o CMakeFiles/Raytracer.dir/Texture.cpp.o CMakeFiles/Raytracer.dir/Geom/Rect.cpp.o  -o Raytracer  -pthread 

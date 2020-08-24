@@ -5,7 +5,26 @@
 
 using glm::vec3;
 
-vec3 random_in_unit_disk();
+vec3 random_unit_vector() {
+    auto a = random_double(0, 2*pi);
+    auto z = random_double(-1, 1);
+    auto r = sqrt(1 - z*z);
+    return vec3(r*cos(a), r*sin(a), z);
+}
+vec3 random_in_unit_sphere() {
+    while (true) {
+        auto p = random(-1,1);
+        if (glm::length(p)*glm::length(p) >= 1) continue;
+        return p;
+    }
+}
+vec3 random_in_unit_disk(){
+    while (true) {
+        auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
+        if (glm::length(p)*glm::length(p) >= 1) continue;
+        return p;
+    }
+}
 
 class Camera {
 public:
