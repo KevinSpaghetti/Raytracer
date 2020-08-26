@@ -11,7 +11,7 @@
 
 class Transform {
 public:
-    Transform() {}
+    Transform() : mTransform(glm::mat4(1.0f)) {}
 
     void translate(glm::vec3 vector){
         mTransform = glm::translate(mTransform, vector);
@@ -24,17 +24,12 @@ public:
     }
 
     void clear(){
-        mTransform = glm::mat4();
+        mTransform = glm::mat4(1.0f);
     }
 
+public:
     glm::vec3 apply(glm::vec4 vector){
         return glm::vec3(mTransform * vector);
-    }
-
-    //Apply the transform so that this transform gets applied
-    //before t transform
-    void add(Transform t){
-        mTransform = t.mTransform * mTransform;
     }
 
 protected:

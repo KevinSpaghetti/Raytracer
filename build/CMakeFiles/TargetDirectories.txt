@@ -1,4 +1,0 @@
-/home/kevin/Desktop/Raytracer/build/CMakeFiles/rebuild_cache.dir
-/home/kevin/Desktop/Raytracer/build/CMakeFiles/edit_cache.dir
-/home/kevin/Desktop/Raytracer/build/CMakeFiles/Test.dir
-/home/kevin/Desktop/Raytracer/build/CMakeFiles/Raytracer.dir

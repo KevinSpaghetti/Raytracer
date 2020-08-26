@@ -1,24 +1,17 @@
 //
 // Created by kevin on 13/08/20.
 //
-
-#ifndef RAYTRACER_MATERIAL_H
-#define RAYTRACER_MATERIAL_H
-
+#pragma once
 #include <glm/glm.hpp>
 #include "../Geom/Ray.h"
+#include "../Geom/Intersection.h"
 
-struct hit_record;
-using glm::vec4;
-using glm::vec3;
 
 class Material {
 public:
-    virtual vec4 emitted(double u, double v, const vec3& p) const {
-        return vec4(0, 0, 0, 0);
+    virtual glm::vec3 emitted(double u, double v, const glm::vec3& p) const {
+        return glm::vec3(0, 0, 0);
     }
-    virtual bool scatter(const Ray& r_in, const hit_record& rec, glm::vec4& attenuation, Ray& scattered) const = 0;
+    virtual glm::vec3 scatter(const Ray& r, const Intersection& i) const = 0;
+
 };
-
-
-#endif //RAYTRACER_MATERIAL_H

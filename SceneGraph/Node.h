@@ -11,67 +11,70 @@
 #include "Transform.h"
 #include "Hittable.h"
 #include "../Geom/Intersections.h"
+#include "../Geom/Sphere.h"
 
-class Node : public Hittable {
+class Node : public Hittable, public Transform {
 public:
     Node() = default;
 
-    Node(const std::shared_ptr<Geometry> geometry,
-         const std::shared_ptr<Material> material,
-         const std::shared_ptr<Transform> transform = std::make_shared<Transform>())
-         : geometry(geometry), material(material)
+    Node(const std::shared_ptr<Sphere> sphere,
+         const std::shared_ptr<Material> material) : sphere(sphere), material(material)
     {}
 
     std::list<Intersection> hit(const Ray& r, double t_min, double t_max) {
         std::list<Intersection> intersections;
 
-        //Intersection tests for the triangles in the geometry
-        //If there is no geometry then the vector will be empty
-        for(Triangle tri : geometry->triangles){
-            Vertex v1 = geometry->vertices[tri.a];
-            Vertex v2 = geometry->vertices[tri.b];
-            Vertex v3 = geometry->vertices[tri.c];
-            float u, v, t;
-            if(intersections::intersect(r, v1.vec(), v2.vec(), v3.vec(), u, v, t)){
-                Normal in{};
-                if (geometry->normals.size() > 0){
-                    Normal n1 = geometry->normals[tri.a];
-                    Normal n2 = geometry->normals[tri.b];
-                    Normal n3 = geometry->normals[tri.c];
-                    glm::vec3 vin = u * n1.vec() + v * n2.vec() + (1 - u - v)*n3.vec();
-                    in = {vin.x, vin.y, vin.z};
-                }else{
-                    in = {0, 0, 0};
-                }
-                glm::vec3 iv = u * v1.vec() + v * v2.vec() + (1 - u - v)*v3.vec();
-                Intersection i{
-                    Vertex{iv.x, iv.y, iv.z},
-                    in,
-                };
-                intersections.push_back(i);
-            }
+        hit_record rec{};
+        if(sphere->hit(r, 0.001, infinity, rec)){
+            Intersection i{
+                Vertex{rec.p.x, rec.p.y, rec.p.z},
+                Normal{rec.normal.x, rec.normal.y, rec.normal.z},
+                material
+            };
+
+            intersections.push_back(i);
+        }
+
+        std::list<Intersection> child_intersections;
+        for (Node n : children) {
+            child_intersections = n.hit(r, t_min, t_max);
+            intersections.splice(intersections.end(), child_intersections);
         }
 
         return intersections;
     }
 
     void add(const Node child){
-        children->push_back(child);
+        children.push_back(child);
     }
     void remove(const Node child){
-        children->remove(child);
+        children.remove(child);
     }
 
-    bool operator==(Node rhs){
-        return geometry == rhs.geometry
-            && transform == rhs.transform
+    bool operator==(const Node rhs) const {
+        return sphere == rhs.sphere
             && material == rhs.material
             && children == rhs.children;
     }
 
+    //Return a copy of the node with the transform applied
+    Node transform(){
+
+        std::shared_ptr<Sphere> sp = std::make_shared<Sphere>(apply(glm::vec4(sphere->center, 1.0f)), sphere->radius, sphere->mat_ptr);
+        Node parent(sp, material);
+        for (Node child : children) {
+            child.mTransform = child.mTransform * this->mTransform;
+            parent.add(child.transform());
+        }
+        return parent;
+    }
+
+    std::shared_ptr<Material> getMaterial() const {
+        return material;
+    }
+
 protected:
-    std::shared_ptr<Geometry> geometry;
-    std::shared_ptr<Transform> transform;
+    std::shared_ptr<Sphere> sphere;
     std::shared_ptr<Material> material;
-    std::shared_ptr<std::list<Node>> children;
+    std::list<Node> children;
 };

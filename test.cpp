@@ -8,6 +8,7 @@
 #include "Utils/ColorBufferFormatPPM.h"
 #include "Utils/FileRenderOutput.h"
 #include "Renderer.h"
+#include "Materials/VNMaterial.h"
 
 int main(){
 
@@ -16,22 +17,35 @@ int main(){
     std::cout << "Done \n";
 
     std::cout << "Creating buffer \n";
-    Buffer<Color> color(100, 100);
+    Buffer<Color> color(500, 500);
     std::cout << "Done \n";
 
-    Node scene(make_shared<Geometry>(geometry), nullptr);
+    std::shared_ptr<Sphere> sp = std::make_shared<Sphere>(glm::vec3(0,0,-1), 0.5 ,nullptr);
+    std::shared_ptr<Material> mat = std::make_shared<VNMaterial>();
+
+    Node scene(sp, mat);
+    scene.translate(glm::vec3{0,-0.5,0});
+
+    std::shared_ptr<Sphere> sp_c1 = std::make_shared<Sphere>(glm::vec3(1,0,-1), 0.5 ,nullptr);
+    std::shared_ptr<Sphere> sp_c2 = std::make_shared<Sphere>(glm::vec3(-1,0,-1), 0.5 ,nullptr);
+    Node n1(sp_c1, mat);
+    Node n2(sp_c2, mat);
+    n1.translate(glm::vec3{0, 0.5, 0});
+    scene.add(n1);
+    scene.add(n2);
+
 
     //Render
     Renderer::Configuration configuration;
     configuration.pixel_samples = 4;
     configuration.max_ray_depth = 8;
 
-    glm::vec3 lookfrom(26,3,6);
-    glm::vec3 lookat(0,2,0);
+    glm::vec3 lookfrom(0,0,1);
+    glm::vec3 lookat(0,0,-1);
     vec3 vup(0,1,0);
     auto dist_to_focus = 10;
     auto aperture = 0.1;
-    float aspect_ratio = 16.0f / 9.0f;
+    float aspect_ratio = 1.0f / 1.0f;
     Camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
     std::cout << "Creating Renderer\n";

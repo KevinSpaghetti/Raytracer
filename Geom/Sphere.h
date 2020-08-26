@@ -5,9 +5,10 @@
 #include "Ray.h"
 #include "../consts.h"
 #include "AABB.h"
+#include "../SceneGraph/Transform.h"
 
 
-class Sphere : public Hittable {
+class Sphere {
 public:
     Sphere() {}
     Sphere(glm::vec3 cen, double r, shared_ptr<Material> m) : center(cen), radius(r), mat_ptr(m) {};
@@ -55,6 +56,12 @@ public:
                 );
 
         return true;
+    }
+
+    //Move the object using the transform
+    //Return a copy of the object
+    Sphere transform(Sphere s, Transform t){
+        return Sphere(t.apply(glm::vec4(center, 1.0f)), s.radius, s.mat_ptr);
     }
 
 public:

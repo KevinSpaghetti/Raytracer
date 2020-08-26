@@ -22,21 +22,6 @@ public:
           normals(normals),
           uvs(uvs){}
 
-    //Apply the transform to all the vertices
-    //And normals
-    void apply(Transform t){
-        for (int i = 0; i < vertices.size(); ++i) {
-            glm::vec4 v(vertices[i].x, vertices[i].y, vertices[i].z, 1.0f);
-            glm::vec3 a = t.apply(v);
-            vertices[i] = Vertex{a.x, a.y, a.z};
-        }
-        for (int i = 0; i < normals.size(); ++i) {
-            glm::vec4 v(normals[i].i, normals[i].j, normals[i].k, 0.0f);
-            glm::vec3 a = t.apply(v);
-            normals[i] = Normal{a.x, a.y, a.z};
-        }
-    }
-
 
 public:
     std::vector<Vertex> vertices;
