@@ -4,11 +4,12 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "../Utils/Consts.h"
 
 class Ray {
 public:
     Ray() {}
-    Ray(const glm::vec3 origin, const glm::vec3 direction) : origin(origin), direction(direction) {}
+    Ray(const glm::vec3 origin, const glm::vec3 direction, const float tmin = 0.001, const float tmax = consts::infinity) : origin(origin), direction(direction), tmin(tmin), tmax(tmax) {}
 
     glm::vec3 getOrigin() const { return origin; }
     glm::vec3 getDirection() const { return direction; }
@@ -18,4 +19,6 @@ private:
     glm::vec3 origin;
     glm::vec3 direction;
 
+    float tmin;
+    float tmax;
 };

@@ -6,30 +6,11 @@
 
 #include <glm/vec3.hpp>
 
-struct Vertex {
-    float x;
-    float y;
-    float z;
+typedef glm::vec3 Vertex;
 
-    glm::vec3 vec(){
-        return glm::vec3(x, y, z);
-    }
-};
+typedef glm::vec3 Normal;
 
-struct Normal {
-    float i;
-    float j;
-    float k;
-    glm::vec3 vec(){
-        return glm::vec3(i, j, k);
-    }
-};
-
-struct UV {
-    float u;
-    float v;
-    float w;
-};
+typedef glm::vec3 UV;
 
 struct Triangle {
     int a;
@@ -37,8 +18,4 @@ struct Triangle {
     int c;
 };
 
-struct Color {
-    float r;
-    float g;
-    float b;
-};
+typedef glm::vec3 Color;

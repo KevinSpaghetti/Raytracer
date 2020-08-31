@@ -9,7 +9,7 @@
 
 class Hittable {
 public:
-    virtual std::list<Intersection> hit(const Ray& r, double t_min, double t_max) = 0;
+    virtual std::list<ObjectIntersection> hit(const Ray& r) = 0;
 
 
 };

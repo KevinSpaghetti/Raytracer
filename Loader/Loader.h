@@ -9,6 +9,8 @@
 template<class T>
 class Loader {
 public:
+
+
     virtual T load(std::string path) const = 0;
 
 };

@@ -12,32 +12,37 @@
 #include "Hittable.h"
 #include "../Geom/Intersections.h"
 #include "../Geom/Sphere.h"
+#include "Mesh.h"
 
 class Node : public Hittable, public Transform {
 public:
     Node() = default;
 
-    Node(const std::shared_ptr<Sphere> sphere,
-         const std::shared_ptr<Material> material) : sphere(sphere), material(material)
+    Node(const std::shared_ptr<Mesh> mesh,
+         const std::shared_ptr<Material> material) : mesh(mesh), material(material)
     {}
 
-    std::list<Intersection> hit(const Ray& r, double t_min, double t_max) {
-        std::list<Intersection> intersections;
+    std::list<ObjectIntersection> hit(const Ray& r) {
+        std::list<ObjectIntersection> intersections;
 
-        hit_record rec{};
-        if(sphere->hit(r, 0.001, infinity, rec)){
-            Intersection i{
-                Vertex{rec.p.x, rec.p.y, rec.p.z},
-                Normal{rec.normal.x, rec.normal.y, rec.normal.z},
+        //Apply the transform to the ray
+        Ray t(apply(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
+
+        std::list<Intersection> i = mesh->intersect(t);
+        for(Intersection is : i){
+            ObjectIntersection ois{
+                is.pv,
+                is.pn,
+                is.uv,
                 material
             };
-
-            intersections.push_back(i);
+            intersections.push_back(ois);
         }
 
-        std::list<Intersection> child_intersections;
+        std::list<ObjectIntersection> child_intersections;
         for (Node n : children) {
-            child_intersections = n.hit(r, t_min, t_max);
+            n.mTransform = this->mTransform * n.mTransform;
+            child_intersections = n.hit(r);
             intersections.splice(intersections.end(), child_intersections);
         }
 
@@ -52,29 +57,13 @@ public:
     }
 
     bool operator==(const Node rhs) const {
-        return sphere == rhs.sphere
+        return mesh == rhs.mesh
             && material == rhs.material
             && children == rhs.children;
     }
 
-    //Return a copy of the node with the transform applied
-    Node transform(){
-
-        std::shared_ptr<Sphere> sp = std::make_shared<Sphere>(apply(glm::vec4(sphere->center, 1.0f)), sphere->radius, sphere->mat_ptr);
-        Node parent(sp, material);
-        for (Node child : children) {
-            child.mTransform = child.mTransform * this->mTransform;
-            parent.add(child.transform());
-        }
-        return parent;
-    }
-
-    std::shared_ptr<Material> getMaterial() const {
-        return material;
-    }
-
 protected:
-    std::shared_ptr<Sphere> sphere;
+    std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Material> material;
     std::list<Node> children;
 };

@@ -14,13 +14,13 @@ public:
     Transform() : mTransform(glm::mat4(1.0f)) {}
 
     void translate(glm::vec3 vector){
-        mTransform = glm::translate(mTransform, vector);
+        mTransform = glm::translate(mTransform, -vector);
     }
     void scale(glm::vec3 axis){
-        mTransform = glm::scale(mTransform, axis);
+        mTransform = glm::scale(mTransform, -axis);
     }
     void rotate(glm::vec3 axis, float angle){
-        mTransform = glm::rotate(mTransform, angle, axis);
+        mTransform = glm::rotate(mTransform, -angle, -axis);
     }
 
     void clear(){

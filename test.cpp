@@ -9,30 +9,59 @@
 #include "Utils/FileRenderOutput.h"
 #include "Renderer.h"
 #include "Materials/VNMaterial.h"
+#include "Materials/ImageTexture.h"
+#include "Loader/ImageTextureLoader.h"
+#include "Materials/TXTMaterial.h"
 
 int main(){
 
     std::cout << "Loading teapot.obj \n";
-    Geometry geometry = OBJLoader().load("teapot.obj");
+    Mesh geometry = OBJLoader().load("teapot.obj");
     std::cout << "Done \n";
+
+    std::vector<Vertex> vt = {
+            Vertex{0.0, 1.0, 1.0},
+            Vertex{-1.0, 0.0, 1.0},
+            Vertex{1.0, 0.0, 1.0},
+            Vertex{0.0, 1.0, 1.0}};
+    std::vector<Triangle> tr = {
+            Triangle{1, 2, 3}};
+    std::vector<Normal> nm = {
+            Normal{1.0, 0.0, 0.0},
+            Normal{0.0, 1.0, 0.0},
+            Normal{0.0, 0.0, 1.0},
+            Normal{0.0, 1.0, 1.0}};
+    std::vector<UV> uv = {
+            UV{0.0, 0.0, 0.0},
+            UV{1.0, 0.0, 0.0},
+            UV{0.5, 1.0, 0.0},
+            UV{1.0, 1.0, 0.0}};
+    Mesh triangle = Mesh(vt, tr, nm, uv);
+
+    std::cout << "Loading texture\n";
+    ImageTexture image = ImageTextureLoader().load("./image.png");
+    TXTMaterial material;
+    material.addTexture("albedo", std::make_shared<ImageTexture>(image));
+    std::cout << "Done\n";
 
     std::cout << "Creating buffer \n";
-    Buffer<Color> color(500, 500);
+    Buffer<Color> color(1000, 1000);
     std::cout << "Done \n";
 
-    std::shared_ptr<Sphere> sp = std::make_shared<Sphere>(glm::vec3(0,0,-1), 0.5 ,nullptr);
-    std::shared_ptr<Material> mat = std::make_shared<VNMaterial>();
+    std::shared_ptr<Mesh> geom = std::make_shared<Mesh>(geometry);
+    std::shared_ptr<Material> mat = std::make_shared<TXTMaterial>(material);
 
-    Node scene(sp, mat);
-    scene.translate(glm::vec3{0,-0.5,0});
+    Node scene(geom, mat);
+    scene.translate(glm::vec3{0,-1.0,1.0});
 
-    std::shared_ptr<Sphere> sp_c1 = std::make_shared<Sphere>(glm::vec3(1,0,-1), 0.5 ,nullptr);
-    std::shared_ptr<Sphere> sp_c2 = std::make_shared<Sphere>(glm::vec3(-1,0,-1), 0.5 ,nullptr);
-    Node n1(sp_c1, mat);
-    Node n2(sp_c2, mat);
-    n1.translate(glm::vec3{0, 0.5, 0});
+    /*
+    Node n1(geom, mat);
+    Node n2(geom, mat);
+    n1.translate(glm::vec3{1.0, 1.0, 0});
     scene.add(n1);
+    n2.translate(glm::vec3{-1.0, -1.0, 0});
     scene.add(n2);
+    */
 
 
     //Render
@@ -50,11 +79,10 @@ int main(){
 
     std::cout << "Creating Renderer\n";
     Renderer renderer(configuration);
-    std::cout << "Renderer creation done\n";
+    std::cout << "Done \n";
     std::cout << "Rendering scene\n";
     renderer.render(scene, color, cam);
-    std::cout << "Scene rendered\n";
-
+    std::cout << "Done \n";
 
     std::cout << "Writing Buffer \n";
     std::shared_ptr<ColorBufferFormat> formatted_buffer;

@@ -12,14 +12,12 @@
 #include "Loader.h"
 #include "../SceneGraph/Geometry.h"
 
-class OBJLoader : public Loader<Geometry> {
+class OBJLoader : public Loader<Mesh> {
 public:
-    OBJLoader() : base_path("./") {}
-    OBJLoader(std::string& base_path) : base_path(base_path) {}
+    OBJLoader() {}
 
-
-    Geometry load(std::string filename) const override {
-        std::string full_path = base_path + filename;
+    Mesh load(std::string filename) const override {
+        std::string full_path = filename;
 
         std::vector<Vertex> vertices;
         std::vector<Triangle> triangles;
@@ -42,16 +40,16 @@ public:
             }
             if (type == "vn"){
                 Normal vn{};
-                tp >> vn.i;
-                tp >> vn.j;
-                tp >> vn.k;
+                tp >> vn.x;
+                tp >> vn.y;
+                tp >> vn.z;
                 normals.push_back(vn);
             }
             if (type == "vt"){
                 UV vt{};
-                tp >> vt.u;
-                tp >> vt.v;
-                tp >> vt.w;
+                tp >> vt.s;
+                tp >> vt.t;
+                tp >> vt.p;
                 uvs.push_back(vt);
             }
             if (type == "f"){
@@ -65,8 +63,6 @@ public:
 
         file.close();
 
-        return Geometry(vertices, triangles, normals, uvs);
+        return Mesh(vertices, triangles, normals, uvs);
     }
-private:
-    std::string base_path;
 };
