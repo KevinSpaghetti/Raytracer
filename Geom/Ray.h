@@ -15,6 +15,13 @@ public:
     glm::vec3 getDirection() const { return direction; }
     glm::vec3 at(float distance) const { return origin + (direction * distance); }
 
+    float getTmin() const {
+        return tmin;
+    }
+    float getTmax() const {
+        return tmax;
+    }
+
 private:
     glm::vec3 origin;
     glm::vec3 direction;

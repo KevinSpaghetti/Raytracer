@@ -11,8 +11,8 @@
 
 class Material {
 public:
-    virtual Color emitted(double u, double v, const glm::vec3& p) const {
-        return glm::vec3(0, 0, 0);
+    virtual Color emitted(const Ray& r, const Intersection& p) const {
+        return Color{0, 0, 0};
     }
     virtual Color scatter(const Ray& r, const Intersection& i) const = 0;
 

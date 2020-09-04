@@ -17,10 +17,10 @@ public:
         mTransform = glm::translate(mTransform, -vector);
     }
     void scale(glm::vec3 axis){
-        mTransform = glm::scale(mTransform, -axis);
+        mTransform = glm::scale(mTransform, 1.0f/axis);
     }
     void rotate(glm::vec3 axis, float angle){
-        mTransform = glm::rotate(mTransform, -angle, -axis);
+        mTransform = glm::rotate(mTransform, -angle, axis);
     }
 
     void clear(){

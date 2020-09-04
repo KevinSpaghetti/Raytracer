@@ -8,7 +8,7 @@
 #include "Intersection.h"
 
 
-
+//Intersection tests must respect the min and max boundaries of the ray
 namespace intersections {
     //https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/geometry-of-a-triangle
 
@@ -34,6 +34,11 @@ namespace intersections {
         if(v < 0 || u + v > 1) return false;
 
         t = glm::dot(B, qvec) * invDet;
+
+        //Discard intersections before the beginning of the ray
+        if(t < 0.001) {
+            return false;
+        }
 
         return true;
     }

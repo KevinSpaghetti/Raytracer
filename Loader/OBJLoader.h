@@ -11,12 +11,13 @@
 #include <string>
 #include "Loader.h"
 #include "../SceneGraph/Geometry.h"
+#include "../SceneGraph/TriangleMesh.h"
 
-class OBJLoader : public Loader<Mesh> {
+class OBJLoader : public Loader<TriangleMesh> {
 public:
     OBJLoader() {}
 
-    Mesh load(std::string filename) const override {
+    TriangleMesh load(std::string filename) const override {
         std::string full_path = filename;
 
         std::vector<Vertex> vertices;
@@ -63,6 +64,6 @@ public:
 
         file.close();
 
-        return Mesh(vertices, triangles, normals, uvs);
+        return TriangleMesh(vertices, triangles, normals, uvs);
     }
 };

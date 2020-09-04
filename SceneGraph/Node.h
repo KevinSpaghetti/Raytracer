@@ -16,27 +16,31 @@
 
 class Node : public Hittable, public Transform {
 public:
-    Node() = default;
+    Node() : mesh(), material() {}
 
     Node(const std::shared_ptr<Mesh> mesh,
          const std::shared_ptr<Material> material) : mesh(mesh), material(material)
     {}
 
+    //TODO: Add a minimum distance to avoid self intersections
     std::list<ObjectIntersection> hit(const Ray& r) {
         std::list<ObjectIntersection> intersections;
 
         //Apply the transform to the ray
         Ray t(apply(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
 
-        std::list<Intersection> i = mesh->intersect(t);
-        for(Intersection is : i){
-            ObjectIntersection ois{
-                is.pv,
-                is.pn,
-                is.uv,
-                material
-            };
-            intersections.push_back(ois);
+        if(mesh != nullptr){
+            std::list<Intersection> i = mesh->intersect(t);
+            for(Intersection is : i){
+
+                ObjectIntersection ois{
+                        is.pv,
+                        is.pn,
+                        is.uv,
+                        material
+                };
+                intersections.push_back(ois);
+            }
         }
 
         std::list<ObjectIntersection> child_intersections;
