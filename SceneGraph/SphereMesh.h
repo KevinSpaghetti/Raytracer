@@ -42,6 +42,10 @@ public:
         return intersections;
     }
 
+    std::shared_ptr<BoundingBox> getSurroundingBox(){
+        return std::make_shared<AABB>(center - radius, center + radius);
+    }
+
 private:
     glm::vec3 center;
     float radius;

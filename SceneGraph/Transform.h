@@ -28,8 +28,12 @@ public:
     }
 
 public:
-    glm::vec3 apply(glm::vec4 vector){
+    glm::vec3 apply(glm::vec4 vector) const {
         return glm::vec3(mTransform * vector);
+    }
+
+    glm::mat4 getTransform() const {
+        return mTransform;
     }
 
 protected:

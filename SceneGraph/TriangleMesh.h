@@ -28,9 +28,12 @@ public:
 
             float t, u, v;
             if(intersections::intersect(r, v1, v2, v3, t, u, v)){
+                //TODO: Check the normalization of all the directions
                 //Interpolate the informations from all the vertices
                 Vertex ip{0, 0, 0};
-                ip = u * v1 + v * v2 + (1-u-v) * v3;
+                //ip = r.getOrigin() + glm::normalize(r.getDirection()) * t;
+                //Does not depend on the direction normalization
+                ip = (1.0f-u-v) * v1 + u * v2 + v * v3;
                 Normal nm{0, 0, 0};
                 UV uv{0, 0, 0};
                 //Check if the normals are there
@@ -38,14 +41,14 @@ public:
                     Normal n1 = normals[tri.a - 1];
                     Normal n2 = normals[tri.b - 1];
                     Normal n3 = normals[tri.c - 1];
-                    nm = u * n1 + v * n2 + (1-u-v) * n3;
+                    nm = glm::normalize((1.0f-u-v) * n1 + u * n2 + v * n3);
                 }
 
                 if(hasUVs()){
                     UV uv1 = uvs[tri.a - 1];
                     UV uv2 = uvs[tri.b - 1];
                     UV uv3 = uvs[tri.c - 1];
-                    uv = u * uv1 + v * uv2 + (1-u-v) * uv3;
+                    uv = (1.0f-u-v) * uv1 + u * uv2 + v * uv3;
                     uv.y = (1.0 - uv.y); //Invert the y axis
                 }
 
@@ -55,6 +58,33 @@ public:
         }
 
         return ins;
+    }
+
+    shared_ptr<BoundingBox> getSurroundingBox(){
+        if(!hasVertices()) {
+            //Return a bounding box for all the scene
+            return std::make_shared<AABB>(Point{0, 0, 0}, Point{0, 0, 0});
+        }
+
+        Point min{consts::infinity, consts::infinity, consts::infinity};
+        Point max{-consts::infinity, -consts::infinity, -consts::infinity};
+
+        for(Vertex v : vertices){
+            for (int i = 0; i < 3; ++i) {
+                if (v[i] < min[i]){
+                    min[i] = v[i];
+                }
+                if (v[i] > max[i]){
+                    max[i] = v[i];
+                }
+            }
+        }
+
+        //Add some thickness to the box in case the triangles lie on the same plane
+        //the box would be with 0 thickness and the ray would never hit it
+        std::shared_ptr<BoundingBox> bbox = std::make_shared<AABB>(min - Point{0.1, 0.1, 0.1}, max + Point{0.1, 0.1, 0.1});
+
+        return bbox;
     }
 
     bool hasNormals() const {

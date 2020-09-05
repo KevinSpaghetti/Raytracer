@@ -10,12 +10,17 @@
 #include "IntersectTestable.h"
 
 //Represents an empty mesh
-class Mesh : public IntersectTestable {
+class Mesh : public IntersectTestable, public Boxable {
 public:
     Mesh() {}
 
-    std::list<Intersection> intersect(const Ray &r) const override {
+    //To allow the empty mesh
+    virtual std::list<Intersection> intersect(const Ray &r) const override {
         return std::list<Intersection>();
+    }
+
+    shared_ptr<BoundingBox> getSurroundingBox() override {
+        return make_shared<AABB>();
     }
 
 };

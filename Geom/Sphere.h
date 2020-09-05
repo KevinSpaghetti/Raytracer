@@ -6,6 +6,7 @@
 #include "../consts.h"
 #include "AABB.h"
 #include "../SceneGraph/Transform.h"
+#include "../BVH/AABB.h"
 
 
 class Sphere {

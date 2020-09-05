@@ -15,6 +15,7 @@
 #include "Utils/Consts.h"
 #include "Materials/VNMaterial.h"
 #include "Utils/Random.h"
+#include "BVH/BVH.h"
 
 class Renderer {
 public:
@@ -40,12 +41,15 @@ public:
             ++n_tile;
         }
 
-        //Copy the scene graph and apply all the transforms
+        //Save the scene and build the bvh
         scene = graph;
+        std::cout << "Building the bvh\n";
+        bvh = BVH(graph);
+        std::cout << "Done\n";
 
         //Calculate samples needed to finish
         for (Tile<Color> tile : tiles) {
-            samples_needed += tile.getHeight() * tile.getWidth();
+            samples_needed += tile.getHeight() * tile.getWidth() * configuration.pixel_samples;
         }
 
         std::cout << "Need " << samples_needed << " Samples\n";
@@ -85,49 +89,67 @@ private:
 
         for (int i = 0; i < tile.getHeight(); ++i) {
             for (int j = 0; j < tile.getWidth(); ++j) {
-                auto v = float(tile.getStarty() + i) / (tile.getHeight()*tile_number);
-                auto h = float(tile.getStartx() + j) / (tile.getWidth()*tile_number);
+                Color pixel_color{0, 0, 0};
+                for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
+                    Color sample_color;
+                    auto v = float(tile.getStarty() + i + randomized::scalar::random()) / (tile.getHeight() * tile_number);
+                    auto h = float(tile.getStartx() + j + randomized::scalar::random()) / (tile.getWidth() * tile_number);
 
-                Ray r = Ray(origin, (upper_left_corner + h*horizontal - v*vertical) - origin);
-                Color color = trace_ray(r, configuration.max_ray_depth);
-                tile(i, j) = color;
+                    Ray r = Ray(origin, (upper_left_corner + h * horizontal - v * vertical) - origin);
+
+                    sample_color = trace_ray(r, configuration.max_ray_depth);
+
+                    pixel_color += sample_color;
+                }
+                tile(i, j) = pixel_color / static_cast<float>(configuration.pixel_samples);
             }
             //Update samples every line to avoid lock overhead
-            samples_completed += tile.getWidth();
+            samples_completed += tile.getWidth() * configuration.pixel_samples;
         }
     }
 
     //TODO: Add no hit shader and max depth reached shader
+    //TODO: Remember the last BVH or Scene node hit and
+    //      check that first
+    //TODO: Remove materials and add shaders
     Color trace_ray(Ray r, int ray_depth) {
 
         if(ray_depth <= 0) {
             return Color{0.0, 0.0, 0.0};
         }
 
-        std::list<ObjectIntersection> intersections = scene.hit(r);
+        std::list<ObjectIntersection> intersections = bvh.hit(r);
+
         if (intersections.empty()){
             glm::vec3 dir = glm::normalize(r.getDirection());
             float t = 0.5f * (dir.y + 1.0);
             return (1.0f-t) * Color{1.0, 1.0, 1.0} + t*Color{0.5, 0.7, 1.0};
         }
 
-        //TODO: find the closes intersection to the camera plane
-        ObjectIntersection i = intersections.front();
-        Color emitted = i.material->emitted(r, i);
-        Color scattered = i.material->scatter(r, i);
+        //find the closes intersection to the camera plane
+        ObjectIntersection closest = intersections.front();
+        for(ObjectIntersection i : intersections){
+            if(glm::length(r.getOrigin() - i.pn) < glm::length(r.getOrigin() - closest.pn)){
+                closest = i;
+            }
+        }
+        Color emitted = closest.material->emitted(r, closest);
+        Color scattered = closest.material->scatter(r, closest);
         //Get scattered rays
-        Ray scatter = Ray(i.pv, i.pn + randomized::vector::in_unit_sphere());
+        Point target = closest.pn + randomized::vector::in_unit_sphere();
+        Ray scatter = Ray(closest.pv, target);
         Color traced = trace_ray(scatter, ray_depth - 1);
-        return 0.5f * (i.pn + glm::vec3{1.0, 1.0, 1.0});
-
+        return 0.5f * traced;
     }
 
 
 private:
+
+    //TODO: Subclass scene to build the bvh
     std::atomic<int> samples_completed = 0;
     int samples_needed = 0;
-    int tile_number = 2;
+    int tile_number = 4;
     Node scene;
+    BVH bvh;
     Configuration configuration;
-
 };

@@ -36,7 +36,7 @@ namespace intersections {
         t = glm::dot(B, qvec) * invDet;
 
         //Discard intersections before the beginning of the ray
-        if(t < 0.001) {
+        if(t < 0.0001) {
             return false;
         }
 

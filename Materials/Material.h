@@ -9,6 +9,9 @@
 #include "ImageTexture.h"
 
 
+//TODO: Aggiungere al materiale la possiblità di ritornare una list<Ray>, i cui raggi
+//      verranno poi tracciati e passati allo shader come list<Color> per ogni raggio
+//
 class Material {
 public:
     virtual Color emitted(const Ray& r, const Intersection& p) const {

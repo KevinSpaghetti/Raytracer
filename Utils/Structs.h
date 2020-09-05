@@ -7,6 +7,7 @@
 #include <glm/vec3.hpp>
 
 typedef glm::vec3 Vertex;
+typedef glm::vec3 Point;
 
 typedef glm::vec3 Normal;
 
