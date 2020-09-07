@@ -10,12 +10,15 @@
 #include "SceneGraph/Node.h"
 #include "Utils/Buffer.h"
 #include "Utils/Tile.h"
-#include "Camera.h"
+#include "Utils/Camera.h"
 #include "Geom/Intersection.h"
 #include "Utils/Consts.h"
 #include "Materials/VNMaterial.h"
 #include "Utils/Random.h"
 #include "BVH/BVH.h"
+#include "Shaders/MaxDepthShader.h"
+#include "Shaders/NoHitShader.h"
+#include "Geom/ObjectIntersection.h"
 
 class Renderer {
 public:
@@ -24,12 +27,14 @@ public:
         int pixel_samples = 1;
         int max_ray_depth = 1;
         bool backface_culling = false;
+        MaxDepthShader max_depth_shader;
+        NoHitShader no_hit_shader;
     };
 
     Renderer(Configuration configuration) : configuration(configuration) {}
 
     //For now render only color
-    void render(Node graph, Buffer<Color>& target, Camera camera){
+    void render(Node graph, Buffer<Color>& target, Camera cam){
         //Divide the buffer in tiles
         //int tile_number = 1;
         std::vector<Tile<Color>> tiles = Tile<Color>::split(target, tile_number);
@@ -40,6 +45,9 @@ public:
                       << "\t Size     ( " << t.getWidth()  << " , " << t.getHeight() << ")\n";
             ++n_tile;
         }
+
+        //Save the camera
+        camera = cam;
 
         //Save the scene and build the bvh
         scene = graph;
@@ -81,12 +89,6 @@ private:
     }
 
     void trace_tile(Tile<Color> tile){
-
-        auto origin = glm::vec3(0, 0, 4);
-        auto horizontal = vec3(10.0, 0, 0);
-        auto vertical = vec3(0, 10.0, 0);
-        auto upper_left_corner = origin - horizontal/2.0f + vertical/2.0f - vec3(0, 0, 4.0);
-
         for (int i = 0; i < tile.getHeight(); ++i) {
             for (int j = 0; j < tile.getWidth(); ++j) {
                 Color pixel_color{0, 0, 0};
@@ -95,9 +97,10 @@ private:
                     auto v = float(tile.getStarty() + i + randomized::scalar::random()) / (tile.getHeight() * tile_number);
                     auto h = float(tile.getStartx() + j + randomized::scalar::random()) / (tile.getWidth() * tile_number);
 
-                    Ray r = Ray(origin, (upper_left_corner + h * horizontal - v * vertical) - origin);
+                    //Ray r = Ray(origin, (upper_left_corner + h * horizontal - v * vertical) - origin);
+                    Ray r = camera.get_ray(h, v);
 
-                    sample_color = trace_ray(r, configuration.max_ray_depth);
+                    sample_color = trace_ray(r, 0);
 
                     pixel_color += sample_color;
                 }
@@ -114,32 +117,40 @@ private:
     //TODO: Remove materials and add shaders
     Color trace_ray(Ray r, int ray_depth) {
 
-        if(ray_depth <= 0) {
-            return Color{0.0, 0.0, 0.0};
+        //If the ray has reached max depth then call the max depth shader
+        if(ray_depth > configuration.max_ray_depth) {
+            return configuration.max_depth_shader.color(r);
         }
 
+        //Check intersections with the scene
         std::list<ObjectIntersection> intersections = bvh.hit(r);
 
+        //If there are no intersections call the no hit shader
         if (intersections.empty()){
-            glm::vec3 dir = glm::normalize(r.getDirection());
-            float t = 0.5f * (dir.y + 1.0);
-            return (1.0f-t) * Color{1.0, 1.0, 1.0} + t*Color{0.5, 0.7, 1.0};
+            return configuration.no_hit_shader.color(r);
         }
 
-        //find the closes intersection to the camera plane
+        ObjectIntersection closest = intersections.front();
+
+        /*
+        //find the closes intersection to the camera
         ObjectIntersection closest = intersections.front();
         for(ObjectIntersection i : intersections){
-            if(glm::length(r.getOrigin() - i.pn) < glm::length(r.getOrigin() - closest.pn)){
+            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - closest.pv)){
                 closest = i;
             }
         }
-        Color emitted = closest.material->emitted(r, closest);
-        Color scattered = closest.material->scatter(r, closest);
+        */
+
+        //execute the hit shader associated with the node hit
         //Get scattered rays
-        Point target = closest.pn + randomized::vector::in_unit_sphere();
-        Ray scatter = Ray(closest.pv, target);
-        Color traced = trace_ray(scatter, ray_depth - 1);
-        return 0.5f * traced;
+        //Point target = closest.pn + randomized::vector::in_unit_sphere();
+        //Ray scatter = Ray(closest.pv, target);
+
+        Ray scattered = closest.shader->scatter(r, closest);
+        Color traced = trace_ray(scattered, ray_depth + 1);
+        Color color = closest.shader->color(r, closest);
+        return 0.5f * color + 0.5f * traced;
     }
 
 
@@ -148,7 +159,8 @@ private:
     //TODO: Subclass scene to build the bvh
     std::atomic<int> samples_completed = 0;
     int samples_needed = 0;
-    int tile_number = 4;
+    int tile_number = 2;
+    Camera camera;
     Node scene;
     BVH bvh;
     Configuration configuration;

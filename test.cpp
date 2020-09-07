@@ -12,8 +12,9 @@
 #include "Materials/ImageTexture.h"
 #include "Loader/ImageTextureLoader.h"
 #include "Materials/TXTMaterial.h"
-#include "SceneGraph/TriangleMesh.h"
-#include "SceneGraph/SphereMesh.h"
+#include "Mesh/TriangleMesh.h"
+#include "Mesh/SphereMesh.h"
+#include "Materials/CheckerTexture.h"
 
 Node createScene(){
     Node root;
@@ -24,19 +25,25 @@ Node createScene(){
     std::cout << "Done \n";
     std::cout << "Loading texture\n";
     ImageTexture image = ImageTextureLoader().load("./image.png");
-    TXTMaterial material;
-    material.addTexture("albedo", std::make_shared<ImageTexture>(image));
     std::cout << "Done\n";
-    std::shared_ptr<Mesh> geom = std::make_shared<TriangleMesh>(geometry);
-    std::shared_ptr<Material> mat = std::make_shared<TXTMaterial>(material);
-    Node pot(geom, mat);
+
+    auto sct = [](Ray r, Intersection i){
+        return Color{0, 0, 0};
+    };
+    auto clr = [](Ray r, Intersection i){
+        return Ray(i.pv, i.pn);
+    };
+    HitShader checkerShader(sct, clr);
+
+    Node pot(std::make_shared<Mesh>(geometry),
+            std::make_shared<HitShader>(checkerShader));
 
     //Create Plane
     std::vector<Vertex> vt = {
-            Vertex{-10, -1.0,-10},
-            Vertex{-10, -1.0, 10},
-            Vertex{ 10, -1.0, 10},
-            Vertex{10, -1.0,-10}};
+            Vertex{-10, -4.0,-10},
+            Vertex{-10, -4.0, 10},
+            Vertex{ 10, -4.0, 10},
+            Vertex{10, -4.0,-10}};
     std::vector<Triangle> tr = {
             Triangle{1, 2, 3},
             Triangle{1, 3, 4}};
@@ -50,27 +57,10 @@ Node createScene(){
             UV{0.0, 0.0, 0.0},
             UV{1.0, 0.0, 0.0},
             UV{1.0, 1.0, 0.0}};
-    std::shared_ptr<Mesh> triangle = std::make_shared<TriangleMesh>(vt,tr,nm,uv);
-    std::shared_ptr<Material> nmat = std::make_shared<VNMaterial>();
-    Node plane(triangle, nmat);
 
-    std::shared_ptr<Mesh> sp1 = std::make_shared<SphereMesh>(glm::vec3{-4.0, 1.5, -1.0}, 1);
-    std::shared_ptr<Mesh> sp2 = std::make_shared<SphereMesh>(glm::vec3{-1.5, 1.5, -1.0}, 1);
-    std::shared_ptr<Mesh> sp3 = std::make_shared<SphereMesh>(glm::vec3{1.5, 1.5, -1.0}, 1);
-    std::shared_ptr<Mesh> sp4 = std::make_shared<SphereMesh>(glm::vec3{4.0, 1.5, -1.0}, 1);
+    pot.scale({0.3, 0.3, 0.3});
 
-    Node sphere1(sp1, mat);
-    Node sphere2(sp2, mat);
-    Node sphere3(sp3, mat);
-    Node sphere4(sp4, mat);
-
-    root.add(plane);
-    Node spheres;
-    spheres.add(sphere1);
-    spheres.add(sphere2);
-    spheres.add(sphere3);
-    spheres.add(sphere4);
-    root.add(spheres);
+    root.add(pot);
 
     return root;
 }
@@ -78,26 +68,43 @@ Node createScene(){
 int main(){
 
     std::cout << "Creating buffer \n";
-    Buffer<Color> color(1000, 1000);
+    const int width = 1920;
+    const int height = 1080;
+    Buffer<Color> color(width, height);
     std::cout << "Done \n";
 
     Node scene = createScene();
 
-    //Render
-    Renderer::Configuration configuration;
-    configuration.pixel_samples = 8;
-    configuration.max_ray_depth = 10;
-    //TODO: Add backface culling options
-    configuration.backface_culling = true;
+    NoHitShader no_hit([](Ray r){
+        glm::vec3 dir = glm::normalize(r.getDirection());
+        float t = 0.5f * (dir.y + 1.0);
+        return (1.0f - t) * Color{0.8, 0.8, 0.8} + t * Color{0.2, 0.4, 0.7};
+    });
+    MaxDepthShader max_depth([](Ray r){
+        return Color{0, 0, 0};
+    });
 
-    glm::vec3 lookfrom(0,0,1);
-    glm::vec3 lookat(0,0,-1);
+    //Render
+    Renderer::Configuration configuration{
+        .pixel_samples = 128,
+        .max_ray_depth = 64,
+        //TODO: Add backface culling options
+        .backface_culling = true,
+        .max_depth_shader = max_depth,
+        .no_hit_shader = no_hit
+    };
+
+    configuration.no_hit_shader = no_hit;
+    configuration.max_depth_shader = max_depth;
+
+    glm::vec3 lookfrom(0,4,6);
+    glm::vec3 lookat(0,0,0);
     vec3 vup(0,1,0);
     auto dist_to_focus = 10;
     auto aperture = 0.1;
-    float aspect_ratio = 1.0f / 1.0f;
-    Camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+    float aspect_ratio = width / height;
 
+    Camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
     clock_t start = clock();
 
@@ -113,13 +120,15 @@ int main(){
     printf("Render done in: %.5f seconds\n", elapsed);
 
 
-
     std::cout << "Writing Buffer \n";
     std::shared_ptr<ColorBufferFormat> formatted_buffer;
     std::shared_ptr<RenderOutput> output;
 
+    //Format the buffer for a ppm file format output
     formatted_buffer = std::make_shared<ColorBufferFormatPPM>(color);
+    //Create a render output on a file
     output = std::make_shared<FileRenderOutput>("render.ppm");
+    //Write the formatted output
     output->write(*formatted_buffer);
     std::cout << "Done \n" << std::endl;
 

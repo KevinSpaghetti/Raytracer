@@ -11,16 +11,20 @@
 #include <string>
 #include "Loader.h"
 #include "../SceneGraph/Geometry.h"
-#include "../SceneGraph/TriangleMesh.h"
+#include "../Mesh/TriangleMesh.h"
 
 class OBJLoader : public Loader<TriangleMesh> {
 public:
     OBJLoader() {}
 
+    //Check if the indexing is 1 based or 0 based
     TriangleMesh load(std::string filename) const override {
         std::string full_path = filename;
 
         std::vector<Vertex> vertices;
+        //TODO: Add the support to faces with vertices with different 1/2/3
+        //v, vt, vn
+        //TODO: Add the support for groups etc
         std::vector<Triangle> triangles;
         std::vector<Normal> normals;
         std::vector<UV> uvs;
@@ -53,12 +57,36 @@ public:
                 tp >> vt.p;
                 uvs.push_back(vt);
             }
+            //f 1/1/1 2/2/2 3/3/3
+            //f v/vt/vn v/vt/vn v/vt/vn
             if (type == "f"){
-                Triangle t{};
-                tp >> t.a;
-                tp >> t.b;
-                tp >> t.c;
-                triangles.push_back(t);
+                Triangle tv{}; //Triangle vertices
+                int t_vt[3];
+                int t_uv[3];
+                int t_nm[3];
+                for (int i = 0; i < 3; ++i) {
+                    char c;
+                    tp >> t_vt[i];
+                    tp >> c;
+                    tp >> t_uv[i];
+                    tp >> c;
+                    tp >> t_nm[i];
+                }
+                tv.vta = t_vt[0] - 1;
+                tv.vtb = t_vt[1] - 1;
+                tv.vtc = t_vt[2] - 1;
+                tv.uva = t_uv[0] - 1;
+                tv.uvb = t_uv[1] - 1;
+                tv.uvc = t_uv[2] - 1;
+                tv.nma = t_nm[0] - 1;
+                tv.nmb = t_nm[1] - 1;
+                tv.nmc = t_nm[2] - 1;
+
+                triangles.push_back(tv);
+            }
+            if (type == "g"){
+                std::string name;
+                tp >> name;
             }
         }
 

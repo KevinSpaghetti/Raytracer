@@ -9,15 +9,8 @@
 #include "../Utils/Consts.h"
 #include "../Materials/Material.h"
 
-class Node;
-class Material;
-
 struct Intersection {
     Vertex pv; //Point in which the ray hits the mesh
     Normal pn; //Normal of the point in which the ray hits the mesh
     UV uv;
-};
-
-struct ObjectIntersection : Intersection {
-    std::shared_ptr<Material> material;
 };

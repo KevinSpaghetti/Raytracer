@@ -3,7 +3,7 @@
 #include "Geom/Ray.h"
 #include "consts.h"
 #include "Hittable_List.h"
-#include "Camera.h"
+#include "Utils/Camera.h"
 #include "Geom/Sphere.h"
 #include "BVH/BVH.h"
 #include "SceneGraph/Texture.h"

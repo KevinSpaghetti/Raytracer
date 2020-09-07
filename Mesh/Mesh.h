@@ -7,9 +7,11 @@
 #include <vector>
 #include "../Utils/Structs.h"
 #include "../Geom/Intersection.h"
-#include "IntersectTestable.h"
+#include "../SceneGraph/IntersectTestable.h"
 
 //Represents an empty mesh
+//TODO: Meshes can have internal datastructures built
+//     on construction to speed up the intersection tests
 class Mesh : public IntersectTestable, public Boxable {
 public:
     Mesh() {}

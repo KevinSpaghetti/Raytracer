@@ -12,16 +12,17 @@
 #include "Hittable.h"
 #include "../Geom/Intersections.h"
 #include "../Geom/Sphere.h"
-#include "Mesh.h"
+#include "../Mesh/Mesh.h"
 #include "../BVH/Boxable.h"
 #include "../BVH/AABB.h"
+#include "../Shaders/HitShader.h"
 
 class Node : public Hittable, public Transform, public Boxable {
 public:
-    Node() : mesh(make_shared<Mesh>()), material() {}
+    Node() : mesh(make_shared<Mesh>()), shader() {}
 
     Node(const std::shared_ptr<Mesh> mesh,
-         const std::shared_ptr<Material> material) : mesh(mesh), material(material)
+         const std::shared_ptr<HitShader> material) : mesh(mesh), shader(material)
     {}
 
     //TODO: Add a minimum distance to avoid self intersections
@@ -38,7 +39,7 @@ public:
                     is.pv,
                     is.pn,
                     is.uv,
-                    material
+                    shader
             };
             intersections.push_back(ois);
         }
@@ -50,7 +51,15 @@ public:
             intersections.splice(intersections.end(), child_intersections);
         }
 
-        return intersections;
+        ObjectIntersection closest = intersections.front();
+        for(ObjectIntersection i : intersections){
+            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - closest.pv)){
+                closest = i;
+            }
+        }
+        //Return only the closest intersection to the camera origin
+
+        return std::list<ObjectIntersection>({closest});
     }
 
     //Return the bounding box surrounding this node
@@ -68,8 +77,8 @@ public:
     std::list<Node> getChildren(){
         return children;
     }
-    std::shared_ptr<Material> getMaterial(){
-        return material;
+    std::shared_ptr<HitShader> getShader(){
+        return shader;
     }
     std::shared_ptr<Mesh> getMesh(){
         return mesh;
@@ -77,12 +86,12 @@ public:
 
     bool operator==(const Node rhs) const {
         return mesh == rhs.mesh
-            && material == rhs.material
+            && shader == rhs.shader
             && children == rhs.children;
     }
 
 protected:
-    std::shared_ptr<Material> material;
+    std::shared_ptr<HitShader> shader;
     std::list<Node> children;
     std::shared_ptr<Mesh> mesh;
 };

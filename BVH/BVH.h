@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include "../Geom/Intersection.h"
+#include "../Geom/ObjectIntersection.h"
 
 //TODO: Build a better bvh by not using the ordering in the scene graph
 //TODO: Apply transforms to the objects instead of multiplying matrices every ray
@@ -16,7 +17,7 @@ public:
     //Build the BVH from the scene graph
     BVH(Node root){
         mesh = root.getMesh();
-        material = root.getMaterial();
+        shader = root.getShader();
         mTransform = root.getTransform();
 
         //Start with the mesh bounding box
@@ -55,7 +56,7 @@ public:
                     is.pv,
                     is.pn,
                     is.uv,
-                    material
+                    shader
             });
         }
 
@@ -66,7 +67,15 @@ public:
             intersections.splice(intersections.end(), is);
         }
 
-        return intersections;
+        ObjectIntersection closest = intersections.front();
+        for(ObjectIntersection i : intersections){
+            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - closest.pv)){
+                closest = i;
+            }
+        }
+        //Return only the closest intersection to the camera origin
+
+        return std::list<ObjectIntersection>({closest});
     }
 
     shared_ptr<BoundingBox> getSurroundingBox() override {

@@ -22,9 +22,9 @@ public:
     std::list<Intersection> intersect(const Ray& r) const override {
         std::list<Intersection> ins;
         for (Triangle tri : triangles) {
-            Vertex v1 = vertices[tri.a - 1];
-            Vertex v2 = vertices[tri.b - 1];
-            Vertex v3 = vertices[tri.c - 1];
+            Vertex v1 = vertices[tri.vta];
+            Vertex v2 = vertices[tri.vtb];
+            Vertex v3 = vertices[tri.vtc];
 
             float t, u, v;
             if(intersections::intersect(r, v1, v2, v3, t, u, v)){
@@ -38,16 +38,16 @@ public:
                 UV uv{0, 0, 0};
                 //Check if the normals are there
                 if(hasNormals()){
-                    Normal n1 = normals[tri.a - 1];
-                    Normal n2 = normals[tri.b - 1];
-                    Normal n3 = normals[tri.c - 1];
+                    Normal n1 = normals[tri.nma];
+                    Normal n2 = normals[tri.nmb];
+                    Normal n3 = normals[tri.nmc];
                     nm = glm::normalize((1.0f-u-v) * n1 + u * n2 + v * n3);
                 }
 
                 if(hasUVs()){
-                    UV uv1 = uvs[tri.a - 1];
-                    UV uv2 = uvs[tri.b - 1];
-                    UV uv3 = uvs[tri.c - 1];
+                    UV uv1 = uvs[tri.uva];
+                    UV uv2 = uvs[tri.uvb];
+                    UV uv3 = uvs[tri.uvc];
                     uv = (1.0f-u-v) * uv1 + u * uv2 + v * uv3;
                     uv.y = (1.0 - uv.y); //Invert the y axis
                 }
