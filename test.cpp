@@ -26,17 +26,9 @@ Node createScene(){
     std::cout << "Loading texture\n";
     ImageTexture image = ImageTextureLoader().load("./image.png");
     std::cout << "Done\n";
-
-    auto sct = [](Ray r, Intersection i){
-        return Color{0, 0, 0};
-    };
-    auto clr = [](Ray r, Intersection i){
-        return Ray(i.pv, i.pn);
-    };
-    HitShader checkerShader(sct, clr);
-
-    Node pot(std::make_shared<Mesh>(geometry),
-            std::make_shared<HitShader>(checkerShader));
+    TXTMaterial mat;
+    mat.addTexture("albedo", std::make_shared<CheckerTexture>(CheckerTexture()));
+    Node pot(std::make_shared<Mesh>(geometry), std::make_shared<TXTMaterial>(mat));
 
     //Create Plane
     std::vector<Vertex> vt = {
@@ -68,34 +60,20 @@ Node createScene(){
 int main(){
 
     std::cout << "Creating buffer \n";
-    const int width = 1920;
-    const int height = 1080;
+    const int width = 500;
+    const int height = 500;
     Buffer<Color> color(width, height);
     std::cout << "Done \n";
 
     Node scene = createScene();
 
-    NoHitShader no_hit([](Ray r){
-        glm::vec3 dir = glm::normalize(r.getDirection());
-        float t = 0.5f * (dir.y + 1.0);
-        return (1.0f - t) * Color{0.8, 0.8, 0.8} + t * Color{0.2, 0.4, 0.7};
-    });
-    MaxDepthShader max_depth([](Ray r){
-        return Color{0, 0, 0};
-    });
-
     //Render
     Renderer::Configuration configuration{
-        .pixel_samples = 128,
+        .pixel_samples = 4,
         .max_ray_depth = 64,
         //TODO: Add backface culling options
-        .backface_culling = true,
-        .max_depth_shader = max_depth,
-        .no_hit_shader = no_hit
+        .backface_culling = true
     };
-
-    configuration.no_hit_shader = no_hit;
-    configuration.max_depth_shader = max_depth;
 
     glm::vec3 lookfrom(0,4,6);
     glm::vec3 lookat(0,0,0);

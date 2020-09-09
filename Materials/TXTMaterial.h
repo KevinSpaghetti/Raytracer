@@ -7,6 +7,7 @@
 #include "Material.h"
 
 class TXTMaterial : public Material {
+
     Color scatter(const Ray& r, const Intersection& i) const {
         std::shared_ptr<Texture> txt = textures.at("albedo");
         return txt->value(i.uv);

@@ -31,9 +31,10 @@ public:
                 //TODO: Check the normalization of all the directions
                 //Interpolate the informations from all the vertices
                 Vertex ip{0, 0, 0};
+                //Worse method, see raytracing gems 3
+                //Gets progressively worse with more camera distance
                 //ip = r.getOrigin() + glm::normalize(r.getDirection()) * t;
-                //Does not depend on the direction normalization
-                ip = (1.0f-u-v) * v1 + u * v2 + v * v3;
+                ip = (1.0f-u-v) * v1 + u * v2 + v * v3; //Does not depend on the direction normalization
                 Normal nm{0, 0, 0};
                 UV uv{0, 0, 0};
                 //Check if the normals are there

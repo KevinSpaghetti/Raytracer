@@ -16,8 +16,6 @@
 #include "Materials/VNMaterial.h"
 #include "Utils/Random.h"
 #include "BVH/BVH.h"
-#include "Shaders/MaxDepthShader.h"
-#include "Shaders/NoHitShader.h"
 #include "Geom/ObjectIntersection.h"
 
 class Renderer {
@@ -27,8 +25,6 @@ public:
         int pixel_samples = 1;
         int max_ray_depth = 1;
         bool backface_culling = false;
-        MaxDepthShader max_depth_shader;
-        NoHitShader no_hit_shader;
     };
 
     Renderer(Configuration configuration) : configuration(configuration) {}
@@ -119,38 +115,32 @@ private:
 
         //If the ray has reached max depth then call the max depth shader
         if(ray_depth > configuration.max_ray_depth) {
-            return configuration.max_depth_shader.color(r);
+            return Color{0, 0, 0}; //Return a background material color
         }
 
         //Check intersections with the scene
-        std::list<ObjectIntersection> intersections = bvh.hit(r);
+        std::list<ObjectIntersection> intersections = scene.hit(r);
 
         //If there are no intersections call the no hit shader
         if (intersections.empty()){
-            return configuration.no_hit_shader.color(r);
+            return Color{0.4, 0.5, 0.7}; //Return a max depth material
         }
 
-        ObjectIntersection closest = intersections.front();
-
-        /*
-        //find the closes intersection to the camera
         ObjectIntersection closest = intersections.front();
         for(ObjectIntersection i : intersections){
             if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - closest.pv)){
                 closest = i;
             }
         }
-        */
-
         //execute the hit shader associated with the node hit
         //Get scattered rays
         //Point target = closest.pn + randomized::vector::in_unit_sphere();
         //Ray scatter = Ray(closest.pv, target);
 
-        Ray scattered = closest.shader->scatter(r, closest);
-        Color traced = trace_ray(scattered, ray_depth + 1);
-        Color color = closest.shader->color(r, closest);
-        return 0.5f * color + 0.5f * traced;
+        Color emitted = closest.node->getMaterial()->emitted(r, closest);
+        Color traced = trace_ray(Ray(closest.pv, closest.pn), ray_depth - 1);
+        Color scattered = closest.node->getMaterial()->scatter(r, closest);
+        return 0.5f * scattered + 0.5f * traced;
     }
 
 

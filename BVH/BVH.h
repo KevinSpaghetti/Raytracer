@@ -10,15 +10,13 @@
 
 //TODO: Build a better bvh by not using the ordering in the scene graph
 //TODO: Apply transforms to the objects instead of multiplying matrices every ray
-class BVH : public Node {
+class BVH : public Hittable, public Boxable {
 public:
     BVH(){};
 
     //Build the BVH from the scene graph
     BVH(Node root){
-        mesh = root.getMesh();
-        shader = root.getShader();
-        mTransform = root.getTransform();
+        node = make_shared<Node>(root);
 
         //Start with the mesh bounding box
         box = root.getSurroundingBox();
@@ -38,7 +36,7 @@ public:
     std::list<ObjectIntersection> hit(const Ray& r) {
         std::list<ObjectIntersection> intersections;
 
-        Ray t(apply(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
+        Ray t(node->apply(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
 
         //Check the ray hit against this node bounding box
         if(!box->isHit(t)) {
@@ -50,39 +48,32 @@ public:
         //1. the object inside the bounding box
         //We cannot use the hit function from the superclass node
         //since it checks the subnodes which we do not want
-        std::list<Intersection> i = mesh->intersect(t);
+        std::list<Intersection> i = node->getMesh()->intersect(t);
         for(Intersection is : i){
             intersections.push_back({
                     is.pv,
                     is.pn,
                     is.uv,
-                    shader
+                    node
             });
         }
 
         //2. the children bounding boxes
         for (const std::shared_ptr<BVH>& n : children){
-            n->mTransform = this->mTransform * n->mTransform;
             std::list<ObjectIntersection> is = n->hit(t);
             intersections.splice(intersections.end(), is);
         }
 
-        ObjectIntersection closest = intersections.front();
-        for(ObjectIntersection i : intersections){
-            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - closest.pv)){
-                closest = i;
-            }
-        }
-        //Return only the closest intersection to the camera origin
 
-        return std::list<ObjectIntersection>({closest});
+        return intersections;
     }
 
-    shared_ptr<BoundingBox> getSurroundingBox() override {
+    shared_ptr<BoundingBox> getSurroundingBox() {
         return box;
     }
 
 protected:
     shared_ptr<BoundingBox> box;
+    std::shared_ptr<Node> node;
     std::list<shared_ptr<BVH>> children;
 };

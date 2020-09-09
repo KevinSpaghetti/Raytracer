@@ -15,14 +15,13 @@
 #include "../Mesh/Mesh.h"
 #include "../BVH/Boxable.h"
 #include "../BVH/AABB.h"
-#include "../Shaders/HitShader.h"
 
-class Node : public Hittable, public Transform, public Boxable {
+class Node : public Hittable, public Transform, public Boxable, std::enable_shared_from_this<Node> {
 public:
-    Node() : mesh(make_shared<Mesh>()), shader() {}
+    Node() : mesh(make_shared<Mesh>()), material() {}
 
     Node(const std::shared_ptr<Mesh> mesh,
-         const std::shared_ptr<HitShader> material) : mesh(mesh), shader(material)
+         const std::shared_ptr<Material> material) : mesh(mesh), material(material)
     {}
 
     //TODO: Add a minimum distance to avoid self intersections
@@ -32,14 +31,14 @@ public:
         //Apply the transform to the ray
         Ray t(apply(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
 
-
+        //Rework to avoid messy code
         std::list<Intersection> i = mesh->intersect(t);
         for(Intersection is : i){
             ObjectIntersection ois{
                     is.pv,
                     is.pn,
                     is.uv,
-                    shader
+                    shared_from_this()
             };
             intersections.push_back(ois);
         }
@@ -51,15 +50,7 @@ public:
             intersections.splice(intersections.end(), child_intersections);
         }
 
-        ObjectIntersection closest = intersections.front();
-        for(ObjectIntersection i : intersections){
-            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - closest.pv)){
-                closest = i;
-            }
-        }
-        //Return only the closest intersection to the camera origin
-
-        return std::list<ObjectIntersection>({closest});
+        return intersections;
     }
 
     //Return the bounding box surrounding this node
@@ -77,8 +68,8 @@ public:
     std::list<Node> getChildren(){
         return children;
     }
-    std::shared_ptr<HitShader> getShader(){
-        return shader;
+    std::shared_ptr<Material> getMaterial(){
+        return material;
     }
     std::shared_ptr<Mesh> getMesh(){
         return mesh;
@@ -86,12 +77,12 @@ public:
 
     bool operator==(const Node rhs) const {
         return mesh == rhs.mesh
-            && shader == rhs.shader
+            && material == rhs.material
             && children == rhs.children;
     }
 
 protected:
-    std::shared_ptr<HitShader> shader;
+    std::shared_ptr<Material> material;
     std::list<Node> children;
     std::shared_ptr<Mesh> mesh;
 };
