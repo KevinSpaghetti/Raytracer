@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Raytracer"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="msvc8"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="E:/Raytracer/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 all"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="E:/Raytracer/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Test">
+				<Option output="E:/Raytracer/build/Test.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="E:/Raytracer/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.26.28801\ATLMFC\include"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.26.28801\include"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\ucrt"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\shared"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\um"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\winrt"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\cppwinrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 Test"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Test/fast">
+				<Option output="E:/Raytracer/build/Test.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="E:/Raytracer/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="msvc8"/>
+				<Compiler>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.26.28801\ATLMFC\include"/>
+					<Add directory="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.26.28801\include"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\ucrt"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\shared"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\um"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\winrt"/>
+					<Add directory="D:\Windows Kits\10\include\10.0.18362.0\cppwinrt"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 Test/fast"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="E:/Raytracer/build"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 edit_cache"/>
+					<CompileFile command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+					<DistClean command="nmake /NOLOGO /f E:\Raytracer\build\Makefile VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="E:/Raytracer/BVH/AABB.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/BVH/BoundingBox.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/BVH/Boxable.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/BVH/CanQueryForHits.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Geom/Intersection.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Geom/Intersections.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Geom/ObjectIntersection.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Libs/stb_image.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Loader/ImageTextureLoader.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Materials/CheckerTexture.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Materials/ImageTexture.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Materials/Material.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Materials/SolidColorTexture.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Materials/TXTMaterial.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Materials/Texture.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Materials/VNMaterial.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Mesh/Mesh.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Mesh/SphereMesh.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Mesh/TriangleMesh.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Renderer.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/SceneGraph/Hittable.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/SceneGraph/IntersectTestable.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Shaders/HitShader.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Shaders/MaxDepthShader.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Shaders/NoHitShader.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Shaders/Shader.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Utils/Buffer.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Utils/ColorBufferFormat.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Utils/ColorBufferFormatPPM.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Utils/FileRenderOutput.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Utils/Random.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Utils/RenderOutput.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/Utils/Tile.h">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/test.cpp">
+			<Option target="Test"/>
+		</Unit>
+		<Unit filename="E:/Raytracer/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
