@@ -20,9 +20,9 @@ public:
 
         //Start with the mesh bounding box
         box = root.getSurroundingBox();
-        for (Node n : root.getChildren()) {
+        for (shared_ptr<Node> n : root.getChildren()) {
             //Build the BVH subtree based on the child node n
-            BVH sub_box(n);
+            BVH sub_box(*n);
             //Get the BVH subtree bounding box
             std::shared_ptr<BoundingBox> bx = sub_box.getSurroundingBox();
             //Grow the node bounding box to contain all the children
@@ -36,7 +36,7 @@ public:
     std::list<ObjectIntersection> hit(const Ray& r) {
         std::list<ObjectIntersection> intersections;
 
-        Ray t(node->apply(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
+        Ray t(node->transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
 
         //Check the ray hit against this node bounding box
         if(!box->isHit(t)) {

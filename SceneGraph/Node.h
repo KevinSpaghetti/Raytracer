@@ -6,7 +6,6 @@
 #include <memory>
 #include <iostream>
 #include <list>
-#include "Geometry.h"
 #include "../Materials/Material.h"
 #include "Transform.h"
 #include "Hittable.h"
@@ -16,7 +15,7 @@
 #include "../BVH/Boxable.h"
 #include "../BVH/AABB.h"
 
-class Node : public Hittable, public Transform, public Boxable, std::enable_shared_from_this<Node> {
+class Node : public Hittable, public Transform, public Boxable, public std::enable_shared_from_this<Node> {
 public:
     Node() : mesh(make_shared<Mesh>()), material() {}
 
@@ -29,7 +28,8 @@ public:
         std::list<ObjectIntersection> intersections;
 
         //Apply the transform to the ray
-        Ray t(apply(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
+        //The recursion applies the transforms without the need to explicitly multiply the matrices
+        Ray t(transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
 
         //Rework to avoid messy code
         std::list<Intersection> i = mesh->intersect(t);
@@ -44,9 +44,8 @@ public:
         }
 
         std::list<ObjectIntersection> child_intersections;
-        for (Node n : children) {
-            n.mTransform = this->mTransform * n.mTransform;
-            child_intersections = n.hit(r);
+        for (shared_ptr<Node> n : children) {
+            child_intersections = n->hit(t);
             intersections.splice(intersections.end(), child_intersections);
         }
 
@@ -58,21 +57,21 @@ public:
         return mesh->getSurroundingBox();
     }
 
-    void add(const Node child){
+    void add(const std::shared_ptr<Node> child){
         children.push_back(child);
     }
-    void remove(const Node child){
+    void remove(const std::shared_ptr<Node> child){
         children.remove(child);
     }
 
-    std::list<Node> getChildren(){
-        return children;
+    std::shared_ptr<Mesh> getMesh(){
+        return mesh;
     }
     std::shared_ptr<Material> getMaterial(){
         return material;
     }
-    std::shared_ptr<Mesh> getMesh(){
-        return mesh;
+    std::list<std::shared_ptr<Node>> getChildren(){
+        return children;
     }
 
     bool operator==(const Node rhs) const {
@@ -82,7 +81,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<Material> material;
-    std::list<Node> children;
     std::shared_ptr<Mesh> mesh;
+    std::shared_ptr<Material> material;
+    std::list<std::shared_ptr<Node>> children;
 };

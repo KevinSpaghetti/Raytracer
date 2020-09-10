@@ -35,10 +35,6 @@ add_executable(Test
         BVH/CanQueryForHits.h
         Materials/CheckerTexture.h
         Materials/SolidColorTexture.h
-        Shaders/Shader.h
-        Shaders/HitShader.h
-        Shaders/NoHitShader.h
-        Shaders/MaxDepthShader.h
-        Geom/ObjectIntersection.h)
+        Geom/ObjectIntersection.h BVH/VertexBasedShape.h Utils/Triangle.h)
 
 target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})

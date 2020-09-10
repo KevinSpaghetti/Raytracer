@@ -10,7 +10,6 @@
 #include <array>
 #include <string>
 #include "Loader.h"
-#include "../SceneGraph/Geometry.h"
 #include "../Mesh/TriangleMesh.h"
 
 class OBJLoader : public Loader<TriangleMesh> {

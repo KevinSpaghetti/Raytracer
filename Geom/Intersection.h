@@ -8,6 +8,7 @@
 #include "../SceneGraph/Node.h"
 #include "../Utils/Consts.h"
 #include "../Materials/Material.h"
+#include "../Utils/Structs.h"
 
 struct Intersection {
     Vertex pv; //Point in which the ray hits the mesh

@@ -1,3 +1,0 @@
-E:/Raytracer/build/CMakeFiles/rebuild_cache.dir
-E:/Raytracer/build/CMakeFiles/Test.dir
-E:/Raytracer/build/CMakeFiles/edit_cache.dir

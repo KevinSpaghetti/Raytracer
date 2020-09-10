@@ -3,10 +3,12 @@
 //
 
 #pragma once
+#include <algorithm>
 
 #include "Mesh.h"
+#include "../Utils/Triangle.h"
 
-class TriangleMesh : public Mesh {
+class TriangleMesh : public Mesh, public VertexBasedShape {
 public:
     TriangleMesh() : vertices(),
              triangles(),
@@ -17,10 +19,13 @@ public:
     vertices(vertices),
     triangles(triangles),
     normals(normals),
-    uvs(uvs){}
+    uvs(uvs){
+
+    }
 
     std::list<Intersection> intersect(const Ray& r) const override {
         std::list<Intersection> ins;
+
         for (Triangle tri : triangles) {
             Vertex v1 = vertices[tri.vta];
             Vertex v2 = vertices[tri.vtb];
@@ -44,7 +49,6 @@ public:
                     Normal n3 = normals[tri.nmc];
                     nm = glm::normalize((1.0f-u-v) * n1 + u * n2 + v * n3);
                 }
-
                 if(hasUVs()){
                     UV uv1 = uvs[tri.uva];
                     UV uv2 = uvs[tri.uvb];
@@ -54,7 +58,6 @@ public:
                 }
 
                 ins.push_back({ip, nm, uv});
-
             }
         }
 
@@ -101,9 +104,26 @@ public:
         return !triangles.empty();
     }
 
-private:
+    std::vector<Normal> getNormals() const {
+        return normals;
+    }
+    std::vector<UV> getUVs() const {
+        return uvs;
+    }
+    std::vector<Vertex> getVertices() const {
+        return vertices;
+    }
+    std::vector<Triangle> getTriangles() const {
+        return triangles;
+    }
+    std::vector<Vertex> verticesAsArray() override {
+        return vertices;
+    }
+
+protected:
     std::vector<Vertex> vertices;
     std::vector<Triangle> triangles;
     std::vector<Normal> normals;
     std::vector<UV> uvs;
+
 };

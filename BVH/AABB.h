@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Boxable.h"
+#include "VertexBasedShape.h"
 
 class AABB : public BoundingBox {
 public:
@@ -25,6 +26,21 @@ public:
                  fmax(a->getMax().z, b->getMax().z));
         min = small;
         max = big;
+    }
+
+    AABB(std::shared_ptr<VertexBasedShape> shape){
+        min = {0, 0, 0};
+        max = {0, 0, 0};
+        //Grow the bounding box
+        for(Vertex v : shape->verticesAsArray()){
+            for (int i = 0; i < 3; ++i) {
+                min[i] = std::min(min[i], v[i]);
+            }
+            for (int i = 0; i < 3; ++i) {
+                max[i] = std::min(max[i], v[i]);
+            }
+        }
+
     }
 
     bool isHit(const Ray& r) override {

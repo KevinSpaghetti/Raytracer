@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
+//The classes that inherith from this can be transformed in a 3D space
 class Transform {
 public:
     Transform() : mTransform(glm::mat4(1.0f)) {}
@@ -28,12 +29,8 @@ public:
     }
 
 public:
-    glm::vec3 apply(glm::vec4 vector) const {
+    glm::vec3 transform(glm::vec4 vector) const {
         return glm::vec3(mTransform * vector);
-    }
-
-    glm::mat4 getTransform() const {
-        return mTransform;
     }
 
 protected:

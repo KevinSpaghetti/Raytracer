@@ -119,7 +119,7 @@ private:
         }
 
         //Check intersections with the scene
-        std::list<ObjectIntersection> intersections = scene.hit(r);
+        std::list<ObjectIntersection> intersections = bvh.hit(r);
 
         //If there are no intersections call the no hit shader
         if (intersections.empty()){
@@ -132,10 +132,7 @@ private:
                 closest = i;
             }
         }
-        //execute the hit shader associated with the node hit
-        //Get scattered rays
-        //Point target = closest.pn + randomized::vector::in_unit_sphere();
-        //Ray scatter = Ray(closest.pv, target);
+
 
         Color emitted = closest.node->getMaterial()->emitted(r, closest);
         Color traced = trace_ray(Ray(closest.pv, closest.pn), ray_depth - 1);

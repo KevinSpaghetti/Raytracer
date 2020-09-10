@@ -28,7 +28,8 @@ Node createScene(){
     std::cout << "Done\n";
     TXTMaterial mat;
     mat.addTexture("albedo", std::make_shared<CheckerTexture>(CheckerTexture()));
-    Node pot(std::make_shared<Mesh>(geometry), std::make_shared<TXTMaterial>(mat));
+    Node pot(std::make_shared<TriangleMesh>(geometry),
+            std::make_shared<TXTMaterial>(mat));
 
     //Create Plane
     std::vector<Vertex> vt = {
@@ -52,7 +53,7 @@ Node createScene(){
 
     pot.scale({0.3, 0.3, 0.3});
 
-    root.add(pot);
+    root.add(make_shared<Node>(pot));
 
     return root;
 }

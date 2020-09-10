@@ -59,11 +59,6 @@ public:
         return true;
     }
 
-    //Move the object using the transform
-    //Return a copy of the object
-    Sphere transform(Sphere s, Transform t){
-        return Sphere(t.apply(glm::vec4(center, 1.0f)), s.radius, s.mat_ptr);
-    }
 
 public:
     glm::vec3 center;
