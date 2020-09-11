@@ -6,8 +6,9 @@
 
 #include "Boxable.h"
 #include "VertexBasedShape.h"
+#include "../SceneGraph/IntersectTestable.h"
 
-class AABB : public BoundingBox {
+class AABB : public BoundingBox, public IntersectTestable {
 public:
     //Default constructor is a bounding box which never gets hit
     //Better than -inf, +inf bounding box because we can start
@@ -15,6 +16,21 @@ public:
     AABB() : min({0,0,0}), max({0,0,0}) {}
 
     AABB(Point min, Point max) : min(min), max(max) {}
+
+    //Create a bounding box which encloses all the points in the list
+    AABB(const std::vector<Point> points){
+        min = {0, 0, 0};
+        max = {0, 0, 0};
+        //Grow the bounding box
+        for(Vertex v : points){
+            for (int i = 0; i < 3; ++i) {
+                min[i] = std::min(min[i], v[i]);
+            }
+            for (int i = 0; i < 3; ++i) {
+                max[i] = std::max(max[i], v[i]);
+            }
+        }
+    }
 
     //Construct a bounding box from the two passed
     AABB(std::shared_ptr<BoundingBox> a, std::shared_ptr<BoundingBox> b){
@@ -28,43 +44,60 @@ public:
         max = big;
     }
 
-    AABB(std::shared_ptr<VertexBasedShape> shape){
-        min = {0, 0, 0};
-        max = {0, 0, 0};
-        //Grow the bounding box
-        for(Vertex v : shape->verticesAsArray()){
-            for (int i = 0; i < 3; ++i) {
-                min[i] = std::min(min[i], v[i]);
-            }
-            for (int i = 0; i < 3; ++i) {
-                max[i] = std::min(max[i], v[i]);
-            }
-        }
+    AABB(std::shared_ptr<VertexBasedShape> shape) : AABB(shape->verticesAsArray()){}
 
+    bool isHit(const Ray& r) const override {
+        float tmin, tmax;
+        return getHitPoint(r, tmin, tmax);
     }
-
-    bool isHit(const Ray& r) override {
+    //One intersection enters and one exits the cube
+    bool getHitPoint(const Ray& r, float& tmin, float& tmax) const {
         for (int a = 0; a < 3; a++) {
             float t0 = fmin((min[a] - r.getOrigin()[a]) / r.getDirection()[a],
-                           (max[a] - r.getOrigin()[a]) / r.getDirection()[a]);
+                            (max[a] - r.getOrigin()[a]) / r.getDirection()[a]);
             float t1 = fmax((min[a] - r.getOrigin()[a]) / r.getDirection()[a],
-                           (max[a] - r.getOrigin()[a]) / r.getDirection()[a]);
-            float tmin = fmax(t0, r.getTmin());
-            float tmax = fmin(t1, r.getTmax());
+                            (max[a] - r.getOrigin()[a]) / r.getDirection()[a]);
+            tmin = fmax(t0, r.getTmin());
+            tmax = fmin(t1, r.getTmax());
             if (tmax <= tmin)
                 return false; //No intersections
         }
         return true;
     }
 
-    Point getMin() override {
+    Point getMin() const override {
         return min;
     }
-    Point getMax() override {
+    Point getMax() const override {
         return max;
     }
 
+    std::list<Intersection> intersect(const Ray &r) const override {
+        std::list<Intersection> ins;
+        float tmin, tmax;
+        if(getHitPoint(r, tmin, tmax)){
+            Point ip = r.getOrigin() + r.getDirection() * tmin;
+            Point box_center = max + ((max - min)/2.0f);
+            Normal nm = box_center - ip;
+            ins.push_back({
+                ip, //Intersection point
+                glm::normalize(nm),
+                {0, 0, 0}
+            });
+            ip = r.getOrigin() + r.getDirection() * tmax;
+            nm = box_center - ip;
+            ins.push_back({
+                ip, //Intersection point
+                glm::normalize(nm),
+                {0, 0, 0}
+            });
+        }
+        return ins;
+    }
+
 private:
+
+
     Point min;
     Point max;
 };

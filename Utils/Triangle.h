@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "../BVH/VertexBasedShape.h"
-
 struct Triangle {
     //Vertex indices
     int vta;
@@ -19,6 +17,5 @@ struct Triangle {
     int nma;
     int nmb;
     int nmc;
-
 
 };

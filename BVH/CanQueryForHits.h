@@ -8,5 +8,5 @@
 
 class CanQueryForHits {
 public:
-    virtual bool isHit(const Ray& r) = 0;
+    virtual bool isHit(const Ray& r) const = 0;
 };

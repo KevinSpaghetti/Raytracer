@@ -10,6 +10,7 @@
 //Since it is a box we can always ask for the max and min points
 class BoundingBox : public CanQueryForHits {
 public:
-    virtual Point getMin() = 0;
-    virtual Point getMax() = 0;
+    virtual Point getMin() const = 0;
+    virtual Point getMax() const = 0;
+
 };

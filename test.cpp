@@ -15,6 +15,7 @@
 #include "Mesh/TriangleMesh.h"
 #include "Mesh/SphereMesh.h"
 #include "Materials/CheckerTexture.h"
+#include "Materials/SolidColorTexture.h"
 
 Node createScene(){
     Node root;
@@ -24,7 +25,7 @@ Node createScene(){
     TriangleMesh geometry = OBJLoader().load("teapot.obj");
     std::cout << "Done \n";
     std::cout << "Loading texture\n";
-    ImageTexture image = ImageTextureLoader().load("./image.png");
+    //ImageTexture image = ImageTextureLoader().load("./image.png");
     std::cout << "Done\n";
     TXTMaterial mat;
     mat.addTexture("albedo", std::make_shared<CheckerTexture>(CheckerTexture()));
@@ -70,7 +71,7 @@ int main(){
 
     //Render
     Renderer::Configuration configuration{
-        .pixel_samples = 4,
+        .pixel_samples = 16,
         .max_ray_depth = 64,
         //TODO: Add backface culling options
         .backface_culling = true
@@ -97,6 +98,7 @@ int main(){
     clock_t stop = clock();
     double elapsed = (double) (stop - start) / CLOCKS_PER_SEC;
     printf("Render done in: %.5f seconds\n", elapsed);
+
 
 
     std::cout << "Writing Buffer \n";

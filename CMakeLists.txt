@@ -35,6 +35,6 @@ add_executable(Test
         BVH/CanQueryForHits.h
         Materials/CheckerTexture.h
         Materials/SolidColorTexture.h
-        Geom/ObjectIntersection.h BVH/VertexBasedShape.h Utils/Triangle.h)
+        Geom/ObjectIntersection.h BVH/VertexBasedShape.h Utils/Triangle.h BVH/RegularGrid.h)
 
 target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})

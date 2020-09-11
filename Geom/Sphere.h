@@ -4,7 +4,6 @@
 #pragma once
 #include "Ray.h"
 #include "../consts.h"
-#include "AABB.h"
 #include "../SceneGraph/Transform.h"
 #include "../BVH/AABB.h"
 

@@ -7,24 +7,35 @@
 
 #include "Mesh.h"
 #include "../Utils/Triangle.h"
+#include "../BVH/RegularGrid.h"
 
 class TriangleMesh : public Mesh, public VertexBasedShape {
 public:
     TriangleMesh() : vertices(),
              triangles(),
              normals(),
-             uvs() {}
+             uvs(),
+             box(buildSurroundingBox()) {}
 
     TriangleMesh(std::vector<Vertex>& vertices, std::vector<Triangle>& triangles, std::vector<Normal>& normals, std::vector<UV>& uvs) :
     vertices(vertices),
     triangles(triangles),
     normals(normals),
-    uvs(uvs){
+    uvs(uvs),
+    box(buildSurroundingBox()),
+    grid(RegularGrid(triangles, vertices, normals, uvs)){
 
     }
 
     std::list<Intersection> intersect(const Ray& r) const override {
         std::list<Intersection> ins;
+
+        //Use the bsp if built
+        if(grid){
+            return grid->intersect(r);
+        }
+
+        //Else use the exhaustive approach
 
         for (Triangle tri : triangles) {
             Vertex v1 = vertices[tri.vta];
@@ -64,9 +75,9 @@ public:
         return ins;
     }
 
-    shared_ptr<BoundingBox> getSurroundingBox(){
+    shared_ptr<AABB> buildSurroundingBox(){
         if(!hasVertices()) {
-            //Return a bounding box for all the scene
+            //Return a bounding box that never hits
             return std::make_shared<AABB>(Point{0, 0, 0}, Point{0, 0, 0});
         }
 
@@ -86,9 +97,12 @@ public:
 
         //Add some thickness to the box in case the triangles lie on the same plane
         //the box would be with 0 thickness and the ray would never hit it
-        std::shared_ptr<BoundingBox> bbox = std::make_shared<AABB>(min - Point{0.1, 0.1, 0.1}, max + Point{0.1, 0.1, 0.1});
+        std::shared_ptr<AABB> bbox = std::make_shared<AABB>(min - Point{0.1, 0.1, 0.1}, max + Point{0.1, 0.1, 0.1});
 
         return bbox;
+    }
+    shared_ptr<BoundingBox> getSurroundingBox(){
+        return static_cast<shared_ptr<BoundingBox>>(box);
     }
 
     bool hasNormals() const {
@@ -116,6 +130,7 @@ public:
     std::vector<Triangle> getTriangles() const {
         return triangles;
     }
+
     std::vector<Vertex> verticesAsArray() override {
         return vertices;
     }
@@ -126,4 +141,7 @@ protected:
     std::vector<Normal> normals;
     std::vector<UV> uvs;
 
+private:
+    std::optional<RegularGrid> grid;
+    std::shared_ptr<AABB> box;
 };
