@@ -4,12 +4,11 @@
 
 #pragma once
 
-#include "BoundingBox.h"
-
 //Indicates the ability of a class that represents 3d object to be enclosed
 //in a bounding box
+template<typename BoxType>
 class Boxable {
 public:
-    virtual shared_ptr<BoundingBox> getSurroundingBox() = 0;
+    virtual BoxType getSurroundingBox() const = 0;
 
 };

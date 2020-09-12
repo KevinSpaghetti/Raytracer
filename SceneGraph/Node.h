@@ -15,7 +15,7 @@
 #include "../BVH/Boxable.h"
 #include "../BVH/AABB.h"
 
-class Node : public Hittable, public Transform, public Boxable, public std::enable_shared_from_this<Node> {
+class Node : public Hittable, public Transform, public Boxable<AABB> {
 public:
     Node() : mesh(make_shared<Mesh>()), material() {}
 
@@ -37,7 +37,7 @@ public:
                     is.pv,
                     is.pn,
                     is.uv,
-                    shared_from_this()
+                    this
             };
             intersections.push_back(ois);
         }
@@ -52,7 +52,7 @@ public:
     }
 
     //Return the bounding box surrounding this node
-    shared_ptr<BoundingBox> getSurroundingBox() override {
+    AABB getSurroundingBox() const override {
         return mesh->getSurroundingBox();
     }
 

@@ -10,5 +10,5 @@ class Node;
 
 struct ObjectIntersection : Intersection {
     //The scene graph node that contains the hit object
-    std::shared_ptr<Node> node;
+    Node* node;
 };

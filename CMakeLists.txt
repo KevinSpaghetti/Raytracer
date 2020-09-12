@@ -30,11 +30,10 @@ add_executable(Test
         Mesh/SphereMesh.h
         SceneGraph/IntersectTestable.h
         BVH/Boxable.h
-        BVH/BoundingBox.h
         BVH/AABB.h
         BVH/CanQueryForHits.h
         Materials/CheckerTexture.h
         Materials/SolidColorTexture.h
-        Geom/ObjectIntersection.h BVH/VertexBasedShape.h Utils/Triangle.h BVH/RegularGrid.h)
+        Geom/ObjectIntersection.h Utils/Triangle.h AccelerationMethods/RegularGrid.h AccelerationMethods/ExhaustiveSearch.h AccelerationMethods/AccelerationStructure.h Mesh/TriangleMeshData.h BVH/BoundingBox.h)
 
 target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})

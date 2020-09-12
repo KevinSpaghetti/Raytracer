@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include "Boxable.h"
-#include "VertexBasedShape.h"
 #include "../SceneGraph/IntersectTestable.h"
+#include "BoundingBox.h"
 
 class AABB : public BoundingBox, public IntersectTestable {
 public:
@@ -14,9 +15,7 @@ public:
     //Better than -inf, +inf bounding box because we can start
     //with the empty bounding box then expand
     AABB() : min({0,0,0}), max({0,0,0}) {}
-
     AABB(Point min, Point max) : min(min), max(max) {}
-
     //Create a bounding box which encloses all the points in the list
     AABB(const std::vector<Point>& points){
         min = {0, 0, 0};
@@ -31,20 +30,18 @@ public:
             }
         }
     }
-
     //Construct a bounding box from the two passed
-    AABB(std::shared_ptr<BoundingBox> a, std::shared_ptr<BoundingBox> b){
-        vec3 small(fmin(a->getMin().x, b->getMin().x),
-                   fmin(a->getMin().y, b->getMin().y),
-                   fmin(a->getMin().z, b->getMin().z));
-        vec3 big(fmax(a->getMax().x, b->getMax().x),
-                 fmax(a->getMax().y, b->getMax().y),
-                 fmax(a->getMax().z, b->getMax().z));
+    AABB(AABB a, AABB b){
+        vec3 small(fmin(a.getMin().x, b.getMin().x),
+                   fmin(a.getMin().y, b.getMin().y),
+                   fmin(a.getMin().z, b.getMin().z));
+        vec3 big(fmax(a.getMax().x, b.getMax().x),
+                 fmax(a.getMax().y, b.getMax().y),
+                 fmax(a.getMax().z, b.getMax().z));
         min = small;
         max = big;
     }
-
-    AABB(const std::shared_ptr<VertexBasedShape>& shape) : AABB(shape->verticesAsArray()){}
+    //Construct a box which encloses all the boxes in the vector
 
     bool isHit(const Ray& r) const override {
         float tmin, tmax;

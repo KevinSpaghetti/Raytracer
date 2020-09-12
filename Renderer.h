@@ -74,6 +74,7 @@ public:
 
 private:
 
+    //TODO: Extract logic in object
     void update_stats(){
         //We need to sleep the thread for seconds, or else the fast reads on samples_completed
         //block the other threads (the workers) from executing and we have a slow down
@@ -142,7 +143,6 @@ private:
 
 private:
 
-    //TODO: Subclass scene to build the bvh
     std::atomic<int> samples_completed = 0;
     int samples_needed = 0;
     int tile_number = 2;

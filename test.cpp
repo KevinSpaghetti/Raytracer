@@ -20,6 +20,7 @@ Node createScene(){
     //Create teapot
     std::cout << "Loading teapot.obj \n";
     TriangleMesh geometry = OBJLoader().load("teapot.obj");
+    geometry.buildAccelerationStructure();
     std::cout << "Done \n";
     TXTMaterial mat;
     mat.addTexture("albedo", std::make_shared<CheckerTexture>(CheckerTexture()));

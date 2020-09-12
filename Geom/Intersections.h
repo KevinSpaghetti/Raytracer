@@ -13,16 +13,15 @@ namespace intersections {
     //https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/geometry-of-a-triangle
 
     bool intersect(const Ray& r, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, float& t, float& u, float& v) {
-        const float kEpsilon = 0.000001;
 
         glm::vec3 A = v2 - v1;
         glm::vec3 B = v3 - v1;
         glm::vec3 pvec = glm::cross(glm::normalize(r.getDirection()), B);
         float det = glm::dot(A, pvec);
 
-        //if(det < kEpsilon) return false; //Backface culling
+        //if(det < consts::epsilon) return false; //Backface culling
 
-        if(fabs(det) < kEpsilon) return false;
+        if(fabs(det) < consts::epsilon) return false;
 
         float invDet = 1 / det;
         glm::vec3 tvec = r.getOrigin() - v1;

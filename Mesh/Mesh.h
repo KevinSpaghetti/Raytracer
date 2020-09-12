@@ -12,7 +12,7 @@
 //Represents an empty mesh
 //TODO: Meshes can have internal datastructures built
 //     on construction to speed up the intersection tests
-class Mesh : public IntersectTestable, public Boxable {
+class Mesh : public IntersectTestable, public Boxable<AABB> {
 public:
     Mesh() {}
 
@@ -21,8 +21,8 @@ public:
         return std::list<Intersection>();
     }
 
-    shared_ptr<BoundingBox> getSurroundingBox() override {
-        return make_shared<AABB>();
+    AABB getSurroundingBox() const override {
+        return AABB();
     }
 
 };

@@ -7,19 +7,15 @@
 #include <vector>
 #include <algorithm>
 #include "../Utils/Triangle.h"
-#include "AABB.h"
+#include "../BVH/AABB.h"
+#include "AccelerationStructure.h"
+#include "../Mesh/TriangleMeshData.h"
 
-class RegularGrid : public Boxable, public IntersectTestable {
+class RegularGrid : public Boxable<AABB>, public AccelerationStructure {
 public:
-    //TODO: Avoid expensive copies of the vectors using pointers
-    RegularGrid(std::vector<Triangle> triangles,
-                std::vector<Vertex> vertices,
-                std::vector<Normal> normals,
-                std::vector<UV> uvs) :
-                triangles(triangles),
-                vertices(vertices),
-                normals(normals),
-                uvs(uvs) {
+    RegularGrid() = delete;
+    RegularGrid(std::shared_ptr<TriangleMeshData> data):
+                data(data) {
         //Build the grid
         //Insert every triangle in all the cells
         box = AABB();
@@ -27,12 +23,12 @@ public:
         std::vector<TriangleInfo> tinfo;
 
         int index = 0;
-        for(Triangle t : triangles) {
-            Vertex v1 = vertices[t.vta];
-            Vertex v2 = vertices[t.vtb];
-            Vertex v3 = vertices[t.vtc];
+        for(Triangle t : data->triangles) {
+            Vertex v1 = data->vertices[t.vta];
+            Vertex v2 = data->vertices[t.vtb];
+            Vertex v3 = data->vertices[t.vtc];
             AABB tbox = AABB(std::vector({v1, v2, v3}));
-            box = AABB(make_shared<AABB>(box), make_shared<AABB>(tbox));
+            box = AABB(box, tbox);
             //Add the triangle info to the cells
             tinfo.push_back({
                     index,
@@ -43,7 +39,7 @@ public:
 
         Point grid_size = box.getMax() - box.getMin();
         float multiplier = 4;
-        float scale = powf((multiplier * triangles.size())/(grid_size.x * grid_size.y * grid_size.z), 1.0f/3.0f);
+        float scale = powf((multiplier * data->triangles.size())/(grid_size.x * grid_size.y * grid_size.z), 1.0f/3.0f);
         resolution = glm::floor(grid_size * scale);
         resolution = glm::max(Point(1), glm::min(resolution, Point(128)));
         cell_extent = grid_size / resolution;
@@ -125,37 +121,9 @@ public:
         while (!finished) {
             int id = cell.z * resolution.x * resolution.y + cell.y * resolution.x + cell.x;
             for (TriangleInfo t : cells[id].overlaps) {
-                Vertex v1 = vertices[t.tri.vta];
-                Vertex v2 = vertices[t.tri.vtb];
-                Vertex v3 = vertices[t.tri.vtc];
-                float ts, u, v;
-                //TODO: refactor to own function
-                if(intersections::intersect(r, v1, v2, v3, ts, u, v)){
-                    //TODO: Check the normalization of all the directions
-                    //Interpolate the informations from all the vertices
-                    Vertex ip{0, 0, 0};
-                    //Worse method, see raytracing gems 3
-                    //Gets progressively worse with more camera distance
-                    //ip = r.getOrigin() + glm::normalize(r.getDirection()) * t;
-                    ip = (1.0f-u-v) * v1 + u * v2 + v * v3; //Does not depend on the direction normalization
-                    Normal nm{0, 0, 0};
-                    UV uv{0, 0, 0};
-                    //Check if the normals are there
-                    if(!normals.empty()){
-                        Normal n1 = normals[t.tri.nma];
-                        Normal n2 = normals[t.tri.nmb];
-                        Normal n3 = normals[t.tri.nmc];
-                        nm = glm::normalize((1.0f-u-v) * n1 + u * n2 + v * n3);
-                    }
-                    if(!uvs.empty()){
-                        UV uv1 = uvs[t.tri.uva];
-                        UV uv2 = uvs[t.tri.uvb];
-                        UV uv3 = uvs[t.tri.uvc];
-                        uv = (1.0f-u-v) * uv1 + u * uv2 + v * uv3;
-                        uv.y = (1.0 - uv.y); //Invert the y axis
-                    }
-
-                    ins.push_back({ip, nm, uv});
+                float d, u, v;
+                if(data->test(r, t.tri, d, u, v)){
+                    ins.emplace_back(data->interpolate(t.tri, u, v));
                 }
             }
             int k = ((nextCrossingT[0] < nextCrossingT[1]) << 2) +
@@ -178,10 +146,8 @@ public:
         return ins;
     }
 
-
-    //TODO: Refactor, Use a pointer for the BBox
-    shared_ptr<BoundingBox> getSurroundingBox() override {
-        return static_cast<shared_ptr<BoundingBox>>(&box);
+    AABB getSurroundingBox() const override {
+        return box;
     }
 
 private:
@@ -198,10 +164,7 @@ private:
 
 
 private:
-    std::vector<Triangle> triangles;
-    std::vector<Vertex> vertices;
-    std::vector<Normal> normals;
-    std::vector<UV> uvs;
+    std::shared_ptr<TriangleMeshData> data;
 
     Point resolution; //Number of cells in each dimension
     Point cell_extent; //dimension of a cell
