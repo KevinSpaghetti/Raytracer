@@ -11,10 +11,11 @@
 
 class RegularGrid : public Boxable, public IntersectTestable {
 public:
-    RegularGrid(const std::vector<Triangle>& triangles,
-                const std::vector<Vertex>& vertices,
-                const std::vector<Normal>& normals,
-                const std::vector<UV>& uvs) :
+    //TODO: Avoid expensive copies of the vectors using pointers
+    RegularGrid(std::vector<Triangle> triangles,
+                std::vector<Vertex> vertices,
+                std::vector<Normal> normals,
+                std::vector<UV> uvs) :
                 triangles(triangles),
                 vertices(vertices),
                 normals(normals),
@@ -124,7 +125,6 @@ public:
         while (!finished) {
             int id = cell.z * resolution.x * resolution.y + cell.y * resolution.x + cell.x;
             for (TriangleInfo t : cells[id].overlaps) {
-                //TODO: Maybe check the bbox first
                 Vertex v1 = vertices[t.tri.vta];
                 Vertex v2 = vertices[t.tri.vtb];
                 Vertex v3 = vertices[t.tri.vtc];

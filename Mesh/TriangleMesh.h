@@ -11,26 +11,21 @@
 
 class TriangleMesh : public Mesh, public VertexBasedShape {
 public:
-    TriangleMesh() : vertices(),
-             triangles(),
-             normals(),
-             uvs(),
-             box(buildSurroundingBox()) {}
+    TriangleMesh() = delete;
 
-    TriangleMesh(std::vector<Vertex>& vertices, std::vector<Triangle>& triangles, std::vector<Normal>& normals, std::vector<UV>& uvs) :
-    vertices(vertices),
-    triangles(triangles),
-    normals(normals),
-    uvs(uvs),
-    box(buildSurroundingBox()),
-    grid(RegularGrid(triangles, vertices, normals, uvs)){
-
+    TriangleMesh(std::vector<Vertex> vertices, std::vector<Triangle> triangles, std::vector<Normal> normals, std::vector<UV> uvs) :
+        vertices(vertices),
+        triangles(triangles),
+        normals(normals),
+        uvs(uvs),
+        box(buildSurroundingBox()),
+        grid(RegularGrid(triangles, vertices, normals, uvs)){
     }
 
     std::list<Intersection> intersect(const Ray& r) const override {
         std::list<Intersection> ins;
 
-        //Use the bsp if built
+        //Use the regular grid if built
         if(grid){
             return grid->intersect(r);
         }
@@ -101,7 +96,7 @@ public:
 
         return bbox;
     }
-    shared_ptr<BoundingBox> getSurroundingBox(){
+    shared_ptr<BoundingBox> getSurroundingBox() override {
         return static_cast<shared_ptr<BoundingBox>>(box);
     }
 
@@ -116,19 +111,6 @@ public:
     }
     bool hasTriangles() const {
         return !triangles.empty();
-    }
-
-    std::vector<Normal> getNormals() const {
-        return normals;
-    }
-    std::vector<UV> getUVs() const {
-        return uvs;
-    }
-    std::vector<Vertex> getVertices() const {
-        return vertices;
-    }
-    std::vector<Triangle> getTriangles() const {
-        return triangles;
     }
 
     std::vector<Vertex> verticesAsArray() override {

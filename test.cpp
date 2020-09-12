@@ -8,14 +8,11 @@
 #include "Utils/ColorBufferFormatPPM.h"
 #include "Utils/FileRenderOutput.h"
 #include "Renderer.h"
-#include "Materials/VNMaterial.h"
-#include "Materials/ImageTexture.h"
 #include "Loader/ImageTextureLoader.h"
 #include "Materials/TXTMaterial.h"
 #include "Mesh/TriangleMesh.h"
-#include "Mesh/SphereMesh.h"
-#include "Materials/CheckerTexture.h"
 #include "Materials/SolidColorTexture.h"
+#include "Materials/CheckerTexture.h"
 
 Node createScene(){
     Node root;
@@ -24,33 +21,10 @@ Node createScene(){
     std::cout << "Loading teapot.obj \n";
     TriangleMesh geometry = OBJLoader().load("teapot.obj");
     std::cout << "Done \n";
-    std::cout << "Loading texture\n";
-    //ImageTexture image = ImageTextureLoader().load("./image.png");
-    std::cout << "Done\n";
     TXTMaterial mat;
     mat.addTexture("albedo", std::make_shared<CheckerTexture>(CheckerTexture()));
     Node pot(std::make_shared<TriangleMesh>(geometry),
             std::make_shared<TXTMaterial>(mat));
-
-    //Create Plane
-    std::vector<Vertex> vt = {
-            Vertex{-10, -4.0,-10},
-            Vertex{-10, -4.0, 10},
-            Vertex{ 10, -4.0, 10},
-            Vertex{10, -4.0,-10}};
-    std::vector<Triangle> tr = {
-            Triangle{1, 2, 3},
-            Triangle{1, 3, 4}};
-    std::vector<Normal> nm = {
-            Normal{0.0, 1.0, 0.0},
-            Normal{0.0, 1.0, 0.0},
-            Normal{0.0, 1.0, 0.0},
-            Normal{0.0, 1.0, 0.0}};
-    std::vector<UV> uv = {
-            UV{0.0, 1.0, 0.0},
-            UV{0.0, 0.0, 0.0},
-            UV{1.0, 0.0, 0.0},
-            UV{1.0, 1.0, 0.0}};
 
     pot.scale({0.3, 0.3, 0.3});
 
@@ -72,7 +46,7 @@ int main(){
     //Render
     Renderer::Configuration configuration{
         .pixel_samples = 16,
-        .max_ray_depth = 64,
+        .max_ray_depth = 5,
         //TODO: Add backface culling options
         .backface_culling = true
     };
@@ -84,7 +58,7 @@ int main(){
     auto aperture = 0.1;
     float aspect_ratio = width / height;
 
-    Camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+    Camera camera(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
     clock_t start = clock();
 
@@ -92,13 +66,13 @@ int main(){
     Renderer renderer(configuration);
     std::cout << "Done \n";
     std::cout << "Rendering scene\n";
-    renderer.render(scene, color, cam);
+    renderer.render(scene, color, camera);
     std::cout << "Done \n";
 
     clock_t stop = clock();
-    double elapsed = (double) (stop - start) / CLOCKS_PER_SEC;
-    printf("Render done in: %.5f seconds\n", elapsed);
-
+    double seconds_elapsed = (double) (stop - start) / CLOCKS_PER_SEC;
+    int minutes_elapsed = std::floor(seconds_elapsed) / 60;
+    printf("Render done in: %d minutes and %.5f seconds\n", minutes_elapsed,  seconds_elapsed - minutes_elapsed * 60);
 
 
     std::cout << "Writing Buffer \n";

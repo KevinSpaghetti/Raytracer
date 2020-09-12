@@ -18,7 +18,7 @@ public:
     AABB(Point min, Point max) : min(min), max(max) {}
 
     //Create a bounding box which encloses all the points in the list
-    AABB(const std::vector<Point> points){
+    AABB(const std::vector<Point>& points){
         min = {0, 0, 0};
         max = {0, 0, 0};
         //Grow the bounding box
@@ -44,7 +44,7 @@ public:
         max = big;
     }
 
-    AABB(std::shared_ptr<VertexBasedShape> shape) : AABB(shape->verticesAsArray()){}
+    AABB(const std::shared_ptr<VertexBasedShape>& shape) : AABB(shape->verticesAsArray()){}
 
     bool isHit(const Ray& r) const override {
         float tmin, tmax;

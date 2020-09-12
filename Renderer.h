@@ -107,10 +107,9 @@ private:
         }
     }
 
-    //TODO: Add no hit shader and max depth reached shader
+    //TODO: Add no hit materials and max depth reached materials
     //TODO: Remember the last BVH or Scene node hit and
     //      check that first
-    //TODO: Remove materials and add shaders
     Color trace_ray(Ray r, int ray_depth) {
 
         //If the ray has reached max depth then call the max depth shader

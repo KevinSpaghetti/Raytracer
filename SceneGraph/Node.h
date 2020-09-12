@@ -23,7 +23,6 @@ public:
          const std::shared_ptr<Material> material) : mesh(mesh), material(material)
     {}
 
-    //TODO: Add a minimum distance to avoid self intersections
     std::list<ObjectIntersection> hit(const Ray& r) {
         std::list<ObjectIntersection> intersections;
 
