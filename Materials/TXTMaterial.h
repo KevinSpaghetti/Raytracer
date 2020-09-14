@@ -12,4 +12,15 @@ class TXTMaterial : public Material {
         std::shared_ptr<Texture> txt = textures.at("albedo");
         return txt->value(i.uv);
     }
+
+public:
+    bool scatter(const Intersection &i, Ray &r) const override {
+        return false;
+    }
+
+protected:
+    Color blend(const Color &emitted, const Color &incoming) const override {
+        std::shared_ptr<Texture> txt = textures.at("albedo");
+        return emitted + 0.5f * incoming;
+    }
 };

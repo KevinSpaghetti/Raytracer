@@ -30,7 +30,7 @@ public:
     }
 
 
-    std::list<ObjectIntersection> hit(const Ray& r) {
+    std::list<ObjectIntersection> hit(Ray& r) override {
         std::list<ObjectIntersection> intersections;
 
         Ray t(node.transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());

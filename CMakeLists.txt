@@ -9,10 +9,10 @@ add_executable(Test
         test.cpp
         Libs/stb_image.h
         Utils/Buffer.h
-        Utils/RenderOutput.h
-        Utils/FileRenderOutput.h
-        Utils/ColorBufferFormat.h
-        Utils/ColorBufferFormatPPM.h
+        Output/RenderOutput.h
+        Output/FileRenderOutput.h
+        Output/ColorBufferFormat.h
+        Output/ColorBufferFormatPPM.h
         Renderer.h
         Utils/Tile.h
         Geom/Intersections.h
@@ -21,10 +21,10 @@ add_executable(Test
         Materials/Material.h
         Materials/VNMaterial.h
         Mesh/Mesh.h
-        Materials/ImageTexture.h
+        Textures/ImageTexture.h
         Loader/ImageTextureLoader.h
         Materials/TXTMaterial.h
-        Materials/Texture.h
+        Textures/Texture.h
         Utils/Random.h
         Mesh/TriangleMesh.h
         Mesh/SphereMesh.h
@@ -32,8 +32,15 @@ add_executable(Test
         BVH/Boxable.h
         BVH/AABB.h
         BVH/CanQueryForHits.h
-        Materials/CheckerTexture.h
-        Materials/SolidColorTexture.h
-        Geom/ObjectIntersection.h Utils/Triangle.h AccelerationMethods/RegularGrid.h AccelerationMethods/ExhaustiveSearch.h AccelerationMethods/AccelerationStructure.h Mesh/TriangleMeshData.h BVH/BoundingBox.h)
+        Textures/CheckerTexture.h
+        Textures/SolidColorTexture.h
+        Geom/ObjectIntersection.h Utils/Triangle.h
+        AccelerationMethods/RegularGrid.h
+        AccelerationMethods/ExhaustiveSearch.h
+        AccelerationMethods/AccelerationStructure.h
+        Mesh/TriangleMeshData.h
+        BVH/BoundingBox.h
+        Mesh/PlaneMesh.h
+        Materials/Lambertian.h RenderInfo.h)
 
 target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})

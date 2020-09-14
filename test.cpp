@@ -5,14 +5,17 @@
 #include "SceneGraph/Node.h"
 #include "Loader/OBJLoader.h"
 #include "Utils/Buffer.h"
-#include "Utils/ColorBufferFormatPPM.h"
-#include "Utils/FileRenderOutput.h"
+#include "Output/ColorBufferFormatPPM.h"
+#include "Output/FileRenderOutput.h"
 #include "Renderer.h"
 #include "Loader/ImageTextureLoader.h"
 #include "Materials/TXTMaterial.h"
 #include "Mesh/TriangleMesh.h"
-#include "Materials/SolidColorTexture.h"
-#include "Materials/CheckerTexture.h"
+#include "Textures/SolidColorTexture.h"
+#include "Textures/CheckerTexture.h"
+#include "Mesh/PlaneMesh.h"
+#include "Materials/Lambertian.h"
+#include "Mesh/SphereMesh.h"
 
 Node createScene(){
     Node root;
@@ -22,14 +25,29 @@ Node createScene(){
     TriangleMesh geometry = OBJLoader().load("teapot.obj");
     geometry.buildAccelerationStructure();
     std::cout << "Done \n";
-    TXTMaterial mat;
-    mat.addTexture("albedo", std::make_shared<CheckerTexture>(CheckerTexture()));
+
+    auto material_ground = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    auto material_center = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+
+    Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_ground);
+    Node sp1(make_shared<SphereMesh>(Point{+1.0,    0.0, -1.0},   0.5), material_center);
+    Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_center);
+    Node sp3(make_shared<SphereMesh>(Point{-1.0,    0.0, -1.0},   0.5), material_center);
+
+    root.add(make_shared<Node>(terrain));
+    root.add(make_shared<Node>(sp1));
+    root.add(make_shared<Node>(sp2));
+    root.add(make_shared<Node>(sp3));
+
+
+/*
     Node pot(std::make_shared<TriangleMesh>(geometry),
-            std::make_shared<TXTMaterial>(mat));
-
+            std::make_shared<Lambertian>(Lambertian(Color{0.1, 0.1, 0.1})));
     pot.scale({0.3, 0.3, 0.3});
-
     root.add(make_shared<Node>(pot));
+*/
+
+    //root.translate({0.5, 0.0, 0.0});
 
     return root;
 }
@@ -37,8 +55,8 @@ Node createScene(){
 int main(){
 
     std::cout << "Creating buffer \n";
-    const int width = 500;
-    const int height = 500;
+    const int width = 1000;
+    const int height = 1000;
     Buffer<Color> color(width, height);
     std::cout << "Done \n";
 
@@ -47,19 +65,18 @@ int main(){
     //Render
     Renderer::Configuration configuration{
         .pixel_samples = 16,
-        .max_ray_depth = 5,
+        .max_ray_depth = 50,
         //TODO: Add backface culling options
         .backface_culling = true
     };
 
-    glm::vec3 lookfrom(0,4,6);
-    glm::vec3 lookat(0,0,0);
-    vec3 vup(0,1,0);
-    auto dist_to_focus = 10;
+    glm::vec3 lookfrom(0,0.1,1);
+    glm::vec3 lookat(0,0,-1);
+    auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1;
     float aspect_ratio = width / height;
 
-    Camera camera(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+    Camera camera(lookfrom, lookat, consts::up, 20, aspect_ratio, aperture, dist_to_focus);
 
     clock_t start = clock();
 

@@ -8,6 +8,7 @@
 
 typedef glm::vec3 Vertex;
 typedef glm::vec3 Point;
+typedef glm::vec3 Dimension;
 
 typedef glm::vec3 Normal;
 

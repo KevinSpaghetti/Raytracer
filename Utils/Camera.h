@@ -29,8 +29,8 @@ public:
     }
 
     Ray get_ray(float s, float t) const {
-        vec3 rd = lens_radius * randomized::vector::in_unit_disk();
-        vec3 offset = u * rd.x + v * rd.y;
+        //vec3 rd = lens_radius * randomized::vector::in_unit_disk();
+        vec3 offset = {0, 0, 0}; //u * rd.x + v * rd.y;
         return Ray(origin + offset, upper_left_corner + s*horizontal - t*vertical - origin - offset);
     }
 

@@ -23,27 +23,38 @@ public:
         if (discriminant > 0) {
             auto root = sqrt(discriminant);
             auto temp = (-half_b - root) / a;
+
             if (temp < r.getTmax() && temp > r.getTmin()) {
+                Point ip = r.at(temp);
+                float phi = atan2(ip.z, ip.x);
+                float theta = asin(ip.y);
+                float u = 1-(phi + pi) / (2*pi);
+                float v = (theta + pi/2) / pi;
                 intersections.push_back(Intersection{
-                    Vertex{r.at(temp)},
-                    (r.at(temp) - center) / radius,
-                    UV{0, 0, 0}
+                    ip,
+                    (ip - center) / radius,
+                    UV{u, v, 0}
                 });
             }
             temp = (-half_b + root) / a;
             if (temp < r.getTmax() && temp > r.getTmin()) {
+                Point ip = r.at(temp);
+                float phi = atan2(ip.z, ip.x);
+                float theta = asin(ip.y);
+                float u = 1-(phi + pi) / (2*pi);
+                float v = (theta + pi/2) / pi;
                 intersections.push_back(Intersection{
-                        Vertex{r.at(temp)},
-                        (r.at(temp) - center) / radius,
-                        UV{0, 0, 0}
+                        ip,
+                        (ip - center) / radius,
+                        UV{u, v, 0}
                 });
             }
         }
         return intersections;
     }
 
-    std::shared_ptr<BoundingBox> getSurroundingBox(){
-        return std::make_shared<AABB>(center - radius, center + radius);
+    AABB getSurroundingBox() const override {
+        return AABB(center - radius, center + radius);
     }
 
 private:

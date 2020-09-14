@@ -119,25 +119,36 @@ private:
         }
 
         //Check intersections with the scene
+        //need to allow the function hit to overwrite the ray
+        //so we can get back the trasformed ray
         std::list<ObjectIntersection> intersections = bvh.hit(r);
 
         //If there are no intersections call the no hit shader
         if (intersections.empty()){
-            return Color{0.4, 0.5, 0.7}; //Return a max depth material
+            Point unit_direction = glm::normalize(r.getDirection());
+            float t = 0.5f*(unit_direction.y + 1.0);
+            return (1.0f-t) * Color(1.0) + t * Color{0.5, 0.7, 1.0};
         }
 
-        ObjectIntersection closest = intersections.front();
+        ObjectIntersection intersection = intersections.front();
+        //TODO: Change to surfaceinteraction
+        //TODO: Maybe handle this and the bvh generation with a middleware class
+        //Between the renderer and the hittable
         for(ObjectIntersection i : intersections){
-            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - closest.pv)){
-                closest = i;
+            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - intersection.pv)){
+                intersection = i;
             }
         }
 
+        //Resolve the material color
+        std::shared_ptr<Material> material = intersection.node->getMaterial();
 
-        Color emitted = closest.node->getMaterial()->emitted(r, closest);
-        Color traced = trace_ray(Ray(closest.pv, closest.pn), ray_depth - 1);
-        Color scattered = closest.node->getMaterial()->scatter(r, closest);
-        return 0.5f * scattered + 0.5f * traced;
+        Ray ray;
+        Color incoming{0, 0, 0};
+        if(material->scatter(intersection, ray)){
+            incoming = trace_ray(ray, ray_depth - 1);
+        }
+        return material->color(r, intersection, incoming);
     }
 
 

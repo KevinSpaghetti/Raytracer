@@ -6,18 +6,26 @@
 #include <map>
 #include "../Geom/Ray.h"
 #include "../Geom/Intersection.h"
-#include "ImageTexture.h"
+#include "../Textures/ImageTexture.h"
 
-
-//TODO: Aggiungere al materiale la possiblità di ritornare una list<Ray>, i cui raggi
-//      verranno poi tracciati e passati allo shader come list<Color> per ogni raggio
-//
+//The function emitted and scattered can be called multiple times
+//To create a material override
+// - emitted: The emitted light
+// - scattered: The scattered light
+// - blend: Blend the emitted and scattered
+// - scatter: Scatter the ray
 class Material {
 public:
-    virtual Color emitted(const Ray& r, const Intersection& p) const {
-        return Color{0, 0, 0};
-    }
-    virtual Color scatter(const Ray& r, const Intersection& i) const = 0;
+    //Scatter the ray
+    virtual bool scatter(const Intersection& i, Ray& r) const = 0;
+
+    //Get the color of the material at the surface point
+    //Override this function to implement effects or
+    //to use the ray and intersection point in the blending process
+    Color color(const Ray& r, const Intersection& i, const Color& incoming) const {
+        Color emitted = this->emitted(r, i);
+        return this->blend(emitted, incoming);
+    };
 
     void addTexture(std::string key, std::shared_ptr<Texture> texture){
         textures.insert(std::pair<std::string, std::shared_ptr<Texture>>(key, texture));
@@ -27,5 +35,14 @@ public:
     }
 
 protected:
+    //The emitted color
+    virtual Color emitted(const Ray& r, const Intersection& i) const { return Color{0, 0, 0}; }
+    //Blend the color of the surface and the color of the incoming light
+    virtual Color blend(const Color& emitted,
+                        const Color& incoming) const = 0;
+
+
+protected:
     std::map<std::string, std::shared_ptr<Texture>> textures;
+
 };

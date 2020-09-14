@@ -23,15 +23,15 @@ public:
          const std::shared_ptr<Material> material) : mesh(mesh), material(material)
     {}
 
-    std::list<ObjectIntersection> hit(const Ray& r) {
+    std::list<ObjectIntersection> hit(Ray& r) override {
         std::list<ObjectIntersection> intersections;
 
         //Apply the transform to the ray
         //The recursion applies the transforms without the need to explicitly multiply the matrices
-        Ray t(transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
+        r = Ray(transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
 
         //Rework to avoid messy code
-        std::list<Intersection> i = mesh->intersect(t);
+        std::list<Intersection> i = mesh->intersect(r);
         for(Intersection is : i){
             ObjectIntersection ois{
                     is.pv,
@@ -44,7 +44,7 @@ public:
 
         std::list<ObjectIntersection> child_intersections;
         for (shared_ptr<Node> n : children) {
-            child_intersections = n->hit(t);
+            child_intersections = n->hit(r);
             intersections.splice(intersections.end(), child_intersections);
         }
 
