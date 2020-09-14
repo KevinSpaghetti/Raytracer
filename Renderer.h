@@ -121,7 +121,7 @@ private:
         //Check intersections with the scene
         //need to allow the function hit to overwrite the ray
         //so we can get back the trasformed ray
-        std::list<ObjectIntersection> intersections = bvh.hit(r);
+        std::list<ObjectIntersection> intersections = scene.hit(r);
 
         //If there are no intersections call the no hit shader
         if (intersections.empty()){
@@ -132,8 +132,7 @@ private:
 
         ObjectIntersection intersection = intersections.front();
         //TODO: Change to surfaceinteraction
-        //TODO: Maybe handle this and the bvh generation with a middleware class
-        //Between the renderer and the hittable
+        //TODO: Maybe handle this and the bvh generation with a middleware class between the renderer and the hittable
         for(ObjectIntersection i : intersections){
             if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - intersection.pv)){
                 intersection = i;
@@ -142,15 +141,17 @@ private:
 
         //Resolve the material color
         std::shared_ptr<Material> material = intersection.node->getMaterial();
-
         Ray ray;
         Color incoming{0, 0, 0};
         if(material->scatter(intersection, ray)){
             incoming = trace_ray(ray, ray_depth - 1);
         }
-        return material->color(r, intersection, incoming);
+        return material->color(intersection, r, incoming);
     }
 
+        //Get material emitted
+        //Get material scattered ray
+        //Get material color
 
 private:
 

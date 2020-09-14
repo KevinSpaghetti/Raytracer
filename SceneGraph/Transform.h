@@ -9,7 +9,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-//The classes that inherith from this can be transformed in a 3D space
+//The classes that inherit from this can be transformed in a 3D space
+//The class stores the inverse of the transform
 class Transform {
 public:
     Transform() : mTransform(glm::mat4(1.0f)) {}
@@ -30,6 +31,9 @@ public:
 
 public:
     glm::vec3 transform(glm::vec4 vector) const {
+        if(vector.w == 0.0){
+            return glm::vec3(glm::transpose(mTransform) * vector);
+        }
         return glm::vec3(mTransform * vector);
     }
 

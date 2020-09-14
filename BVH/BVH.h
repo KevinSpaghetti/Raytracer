@@ -33,7 +33,7 @@ public:
     std::list<ObjectIntersection> hit(Ray& r) override {
         std::list<ObjectIntersection> intersections;
 
-        Ray t(node.transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
+        Ray t(node.transform(glm::vec4(r.getOrigin(), 1.0)), node.transform(glm::vec4(r.getDirection(), 0.0)));
 
         //Check the ray hit against this node bounding box
         if(!box.isHit(t)) {
@@ -43,10 +43,9 @@ public:
 
         //If the ray hits the bounding box check
         //1. the object inside the bounding box
-        //We cannot use the hit function from the superclass node
-        //since it checks the subnodes which we do not want
         std::list<Intersection> i = node.getMesh()->intersect(t);
         for(Intersection is : i){
+            //TODO: Transform pv in world space
             intersections.push_back({
                     is.pv,
                     is.pn,

@@ -9,8 +9,14 @@
 #include "../consts.h"
 
 class VNMaterial : public Material {
-    glm::vec3 scatter(const Ray& r, const Intersection& i) const {
-        return (glm::normalize(i.pn + glm::vec3(1, 1, 1)));
+public:
+    bool scatter(const Intersection &i, Ray &r) const override {
+        return false;
     }
+
+    Color color(const Intersection &i, const Ray &r, const Color &incoming) const override {
+        return glm::clamp((i.pv + Point(1.0f)) / 2.0f, Point(0), Point(1.0f));
+    }
+
 
 };

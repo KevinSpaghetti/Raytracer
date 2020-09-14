@@ -28,10 +28,10 @@ public:
 
         //Apply the transform to the ray
         //The recursion applies the transforms without the need to explicitly multiply the matrices
-        r = Ray(transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
+        Ray t(transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
 
         //Rework to avoid messy code
-        std::list<Intersection> i = mesh->intersect(r);
+        std::list<Intersection> i = mesh->intersect(t);
         for(Intersection is : i){
             ObjectIntersection ois{
                     is.pv,
@@ -44,7 +44,7 @@ public:
 
         std::list<ObjectIntersection> child_intersections;
         for (shared_ptr<Node> n : children) {
-            child_intersections = n->hit(r);
+            child_intersections = n->hit(t);
             intersections.splice(intersections.end(), child_intersections);
         }
 

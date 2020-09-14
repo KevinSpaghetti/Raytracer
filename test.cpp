@@ -16,6 +16,7 @@
 #include "Mesh/PlaneMesh.h"
 #include "Materials/Lambertian.h"
 #include "Mesh/SphereMesh.h"
+#include "Materials/Metal.h"
 
 Node createScene(){
     Node root;
@@ -26,16 +27,19 @@ Node createScene(){
     geometry.buildAccelerationStructure();
     std::cout << "Done \n";
 
-    auto material_ground = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-    auto material_center = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    auto material_ground = make_shared<Metal>(Color(0.5, 0.5, 0.5));
+    auto material_center = make_shared<VNMaterial>();
 
     Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_ground);
     Node sp1(make_shared<SphereMesh>(Point{+1.0,    0.0, -1.0},   0.5), material_center);
     Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_center);
-    Node sp3(make_shared<SphereMesh>(Point{-1.0,    0.0, -1.0},   0.5), material_center);
+    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_center);
+
+    sp2.translate({-0.5, 0.0, 0.0});
+    sp3.translate({0.4, 0.0, 0.0});
 
     root.add(make_shared<Node>(terrain));
-    root.add(make_shared<Node>(sp1));
+    //root.add(make_shared<Node>(sp1));
     root.add(make_shared<Node>(sp2));
     root.add(make_shared<Node>(sp3));
 
@@ -47,16 +51,14 @@ Node createScene(){
     root.add(make_shared<Node>(pot));
 */
 
-    //root.translate({0.5, 0.0, 0.0});
-
     return root;
 }
 
 int main(){
 
     std::cout << "Creating buffer \n";
-    const int width = 1000;
-    const int height = 1000;
+    const int width = 500;
+    const int height = 500;
     Buffer<Color> color(width, height);
     std::cout << "Done \n";
 
@@ -64,8 +66,8 @@ int main(){
 
     //Render
     Renderer::Configuration configuration{
-        .pixel_samples = 16,
-        .max_ray_depth = 50,
+        .pixel_samples = 4,
+        .max_ray_depth = 25,
         //TODO: Add backface culling options
         .backface_culling = true
     };
