@@ -23,7 +23,7 @@ public:
          const std::shared_ptr<Material> material) : mesh(mesh), material(material)
     {}
 
-    std::list<ObjectIntersection> hit(Ray& r) override {
+    std::list<ObjectIntersection> hit(const Ray& r) override {
         std::list<ObjectIntersection> intersections;
 
         //Apply the transform to the ray
@@ -46,6 +46,11 @@ public:
         for (shared_ptr<Node> n : children) {
             child_intersections = n->hit(t);
             intersections.splice(intersections.end(), child_intersections);
+        }
+
+        for (ObjectIntersection& it : intersections) {
+            it.pv = inverse(glm::vec4(it.pv, 1.0f));
+            it.pn = inverse(glm::vec4(it.pn, 0.0f));
         }
 
         return intersections;

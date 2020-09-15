@@ -30,7 +30,7 @@ public:
     }
 
 
-    std::list<ObjectIntersection> hit(Ray& r) override {
+    std::list<ObjectIntersection> hit(const Ray& r) override {
         std::list<ObjectIntersection> intersections;
 
         Ray t(node.transform(glm::vec4(r.getOrigin(), 1.0)), node.transform(glm::vec4(r.getDirection(), 0.0)));
@@ -45,7 +45,6 @@ public:
         //1. the object inside the bounding box
         std::list<Intersection> i = node.getMesh()->intersect(t);
         for(Intersection is : i){
-            //TODO: Transform pv in world space
             intersections.push_back({
                     is.pv,
                     is.pn,
@@ -60,6 +59,10 @@ public:
             intersections.splice(intersections.end(), is);
         }
 
+        for (ObjectIntersection& it : intersections) {
+            it.pv = node.inverse(glm::vec4(it.pv, 1.0f));
+            it.pn = node.inverse(glm::vec4(it.pn, 0.0f));
+        }
 
         return intersections;
     }

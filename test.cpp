@@ -27,29 +27,28 @@ Node createScene(){
     geometry.buildAccelerationStructure();
     std::cout << "Done \n";
 
-    auto material_ground = make_shared<Metal>(Color(0.5, 0.5, 0.5));
-    auto material_center = make_shared<VNMaterial>();
+    auto material_ground = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    auto material_center = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+
+
 
     Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_ground);
-    Node sp1(make_shared<SphereMesh>(Point{+1.0,    0.0, -1.0},   0.5), material_center);
     Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_center);
     Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_center);
 
     sp2.translate({-0.5, 0.0, 0.0});
-    sp3.translate({0.4, 0.0, 0.0});
-
-    root.add(make_shared<Node>(terrain));
-    //root.add(make_shared<Node>(sp1));
+    sp3.translate({0.5, 0.0, 0.0});
     root.add(make_shared<Node>(sp2));
     root.add(make_shared<Node>(sp3));
 
+    root.add(make_shared<Node>(terrain));
 
-/*
+    /*
     Node pot(std::make_shared<TriangleMesh>(geometry),
-            std::make_shared<Lambertian>(Lambertian(Color{0.1, 0.1, 0.1})));
+            std::make_shared<Lambertian>(Lambertian(Color{0.5, 0.5, 0.5})));
     pot.scale({0.3, 0.3, 0.3});
     root.add(make_shared<Node>(pot));
-*/
+    */
 
     return root;
 }
@@ -57,8 +56,8 @@ Node createScene(){
 int main(){
 
     std::cout << "Creating buffer \n";
-    const int width = 500;
-    const int height = 500;
+    const int width = 100;
+    const int height = 100;
     Buffer<Color> color(width, height);
     std::cout << "Done \n";
 
@@ -66,8 +65,8 @@ int main(){
 
     //Render
     Renderer::Configuration configuration{
-        .pixel_samples = 4,
-        .max_ray_depth = 25,
+        .pixel_samples = 2,
+        .max_ray_depth = 5,
         //TODO: Add backface culling options
         .backface_culling = true
     };

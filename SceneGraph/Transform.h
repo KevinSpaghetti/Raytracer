@@ -37,6 +37,13 @@ public:
         return glm::vec3(mTransform * vector);
     }
 
+    glm::vec3 inverse(glm::vec4 vector) const {
+        if(vector.w == 0.0){
+            return glm::vec3(glm::transpose(mTransform) * vector);
+        }
+        return glm::vec3(glm::inverse(mTransform) * vector);
+    }
+
 protected:
     glm::mat4 mTransform;
 

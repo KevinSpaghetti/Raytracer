@@ -121,7 +121,7 @@ private:
         //Check intersections with the scene
         //need to allow the function hit to overwrite the ray
         //so we can get back the trasformed ray
-        std::list<ObjectIntersection> intersections = scene.hit(r);
+        std::list<ObjectIntersection> intersections = bvh.hit(r);
 
         //If there are no intersections call the no hit shader
         if (intersections.empty()){
@@ -157,7 +157,7 @@ private:
 
     std::atomic<int> samples_completed = 0;
     int samples_needed = 0;
-    int tile_number = 2;
+    int tile_number = 1;
     Camera camera;
     Node scene;
     BVH bvh;

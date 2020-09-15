@@ -44,3 +44,4 @@ add_executable(Test
         Materials/Lambertian.h RenderInfo.h Materials/Metal.h)
 
 target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})
+target_compile_options(Test PRIVATE -g)
