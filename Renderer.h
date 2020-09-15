@@ -121,7 +121,7 @@ private:
         //Check intersections with the scene
         //need to allow the function hit to overwrite the ray
         //so we can get back the trasformed ray
-        std::list<ObjectIntersection> intersections = bvh.hit(r);
+        std::list<ObjectIntersection> intersections = scene.hit(r);
 
         //If there are no intersections call the no hit shader
         if (intersections.empty()){
@@ -148,10 +148,6 @@ private:
         }
         return material->color(intersection, r, incoming);
     }
-
-        //Get material emitted
-        //Get material scattered ray
-        //Get material color
 
 private:
 

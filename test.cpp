@@ -26,18 +26,19 @@ Node createScene(){
     TriangleMesh geometry = OBJLoader().load("teapot.obj");
     geometry.buildAccelerationStructure();
     std::cout << "Done \n";
+    std::cout << "Loading Texture \n";
+    ImageTexture txt = ImageTextureLoader().load("image.png");
+    std::cout << "Done";
 
-    auto material_ground = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-    auto material_center = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    auto material_lambert = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    auto material_metal = make_shared<Metal>(Color(0.5, 0.5, 0.5));
 
-
-
-    Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_ground);
-    Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_center);
-    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_center);
+    Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_lambert);
+    Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_lambert);
+    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_metal);
 
     sp2.translate({-0.5, 0.0, 0.0});
-    sp3.translate({0.5, 0.0, 0.0});
+    sp3.translate({0.5, 0.5, 0.0});
     root.add(make_shared<Node>(sp2));
     root.add(make_shared<Node>(sp3));
 
@@ -56,8 +57,8 @@ Node createScene(){
 int main(){
 
     std::cout << "Creating buffer \n";
-    const int width = 100;
-    const int height = 100;
+    const int width = 500;
+    const int height = 500;
     Buffer<Color> color(width, height);
     std::cout << "Done \n";
 
@@ -66,12 +67,12 @@ int main(){
     //Render
     Renderer::Configuration configuration{
         .pixel_samples = 2,
-        .max_ray_depth = 5,
+        .max_ray_depth = 2,
         //TODO: Add backface culling options
         .backface_culling = true
     };
 
-    glm::vec3 lookfrom(0,0.1,1);
+    glm::vec3 lookfrom(0,0,1);
     glm::vec3 lookat(0,0,-1);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1;

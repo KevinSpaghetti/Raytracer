@@ -28,18 +28,16 @@ public:
 
         //Apply the transform to the ray
         //The recursion applies the transforms without the need to explicitly multiply the matrices
-        Ray t(transform(glm::vec4(r.getOrigin(), 1.0)), r.getDirection());
+        Ray t(pointToObjectSpace(r.getOrigin()),
+              directionToObjectSpace(r.getDirection()));
 
         //Rework to avoid messy code
         std::list<Intersection> i = mesh->intersect(t);
         for(Intersection is : i){
-            ObjectIntersection ois{
-                    is.pv,
-                    is.pn,
-                    is.uv,
-                    this
-            };
-            intersections.push_back(ois);
+            intersections.push_back({
+                                            is,
+                                            this
+                                    });
         }
 
         std::list<ObjectIntersection> child_intersections;
@@ -49,8 +47,8 @@ public:
         }
 
         for (ObjectIntersection& it : intersections) {
-            it.pv = inverse(glm::vec4(it.pv, 1.0f));
-            it.pn = inverse(glm::vec4(it.pn, 0.0f));
+            it.pv = pointToWorldSpace(it.pv);
+            it.pn = directionToWorldSpace(it.pn);
         }
 
         return intersections;
@@ -80,8 +78,8 @@ public:
 
     bool operator==(const Node rhs) const {
         return mesh == rhs.mesh
-            && material == rhs.material
-            && children == rhs.children;
+               && material == rhs.material
+               && children == rhs.children;
     }
 
 protected:

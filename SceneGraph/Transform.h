@@ -13,38 +13,44 @@
 //The class stores the inverse of the transform
 class Transform {
 public:
-    Transform() : mTransform(glm::mat4(1.0f)) {}
+    Transform() : mTransform(glm::mat4(1.0f)), mInverse(glm::mat4(1.0f)) {}
 
     void translate(glm::vec3 vector){
         mTransform = glm::translate(mTransform, -vector);
+        mInverse = glm::translate(mInverse, vector);
     }
     void scale(glm::vec3 axis){
         mTransform = glm::scale(mTransform, 1.0f/axis);
+        mInverse = glm::scale(mInverse, axis);
     }
     void rotate(glm::vec3 axis, float angle){
         mTransform = glm::rotate(mTransform, -angle, axis);
+        mInverse = glm::rotate(mInverse, angle, axis);
     }
 
     void clear(){
         mTransform = glm::mat4(1.0f);
+        mInverse = glm::mat4(1.0f);
     }
 
 public:
-    glm::vec3 transform(glm::vec4 vector) const {
-        if(vector.w == 0.0){
-            return glm::vec3(glm::transpose(mTransform) * vector);
-        }
-        return glm::vec3(mTransform * vector);
+    glm::vec3 pointToObjectSpace(glm::vec3 vector) const {
+        return glm::vec3(mTransform * glm::vec4(vector, 1.0f));
+    }
+    glm::vec3 directionToObjectSpace(glm::vec3 vector) const {
+        return glm::vec3(glm::transpose(mTransform) * glm::vec4(vector, 0.0f));
     }
 
-    glm::vec3 inverse(glm::vec4 vector) const {
-        if(vector.w == 0.0){
-            return glm::vec3(glm::transpose(mTransform) * vector);
-        }
-        return glm::vec3(glm::inverse(mTransform) * vector);
+    glm::vec3 pointToWorldSpace(glm::vec3 vector) const {
+        glm::mat4 inv = glm::inverse(mTransform);
+        return glm::vec3(inv * glm::vec4(vector, 1.0f));
+    }
+    glm::vec3 directionToWorldSpace(glm::vec3 vector) const {
+        return glm::vec3(glm::transpose(glm::inverse(mTransform)) * glm::vec4(vector, 0.0f));
     }
 
 protected:
     glm::mat4 mTransform;
+    glm::mat4 mInverse;
 
 };

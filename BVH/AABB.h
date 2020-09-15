@@ -49,13 +49,12 @@ public:
     }
     //One intersection enters and one exits the cube
     bool getHitPoint(const Ray& r, float& tmin, float& tmax) const {
+        Point mn = glm::min((min - r.getOrigin())/r.getDirection(), (max - r.getOrigin())/r.getDirection());
+        Point mx = glm::max((min - r.getOrigin())/r.getDirection(), (max - r.getOrigin())/r.getDirection());
+
         for (int a = 0; a < 3; a++) {
-            float t0 = fmin((min[a] - r.getOrigin()[a]) / r.getDirection()[a],
-                            (max[a] - r.getOrigin()[a]) / r.getDirection()[a]);
-            float t1 = fmax((min[a] - r.getOrigin()[a]) / r.getDirection()[a],
-                            (max[a] - r.getOrigin()[a]) / r.getDirection()[a]);
-            tmin = fmax(t0, r.getTmin());
-            tmax = fmin(t1, r.getTmax());
+            tmin = fmax(mn[a], r.getTmin());
+            tmax = fmin(mx[a], r.getTmax());
             if (tmax <= tmin)
                 return false; //No intersections
         }

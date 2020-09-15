@@ -11,7 +11,9 @@ public:
     Metal(const Color a) : albedo(a) {}
 
     bool scatter(const Intersection &i, Ray& r) const override {
-        Point reflection = glm::reflect(glm::normalize(r.getDirection()), i.pn);
+        Point v = r.getDirection();
+        Point n = i.pn;
+        Point reflection = v - 2*glm::dot(v,n)*n;
         r =  Ray(i.pv, reflection);
         return true;
     }

@@ -26,27 +26,26 @@ public:
 
             if (temp < r.getTmax() && temp > r.getTmin()) {
                 Point ip = r.at(temp);
-                float phi = atan2(ip.z, ip.x);
-                float theta = asin(ip.y);
-                float u = 1-(phi + pi) / (2*pi);
-                float v = (theta + pi/2) / pi;
+                Point n = (ip - center) / radius;
+                float u = atan2(n.x, n.z) / (2*pi) + 0.5;
+                float v = n.y * 0.5f + 0.5f;
                 intersections.push_back(Intersection{
                     ip,
-                    (ip - center) / radius,
-                    UV{u, v, 0}
+                    n,
+                    //Invert the y axis because we are using
+                    UV{u, 1.0f - v, 0}
                 });
             }
             temp = (-half_b + root) / a;
             if (temp < r.getTmax() && temp > r.getTmin()) {
                 Point ip = r.at(temp);
-                float phi = atan2(ip.z, ip.x);
-                float theta = asin(ip.y);
-                float u = 1-(phi + pi) / (2*pi);
-                float v = (theta + pi/2) / pi;
+                Point n = (ip - center) / radius;
+                float u = atan2(n.x, n.z) / (2*pi) + 0.5;
+                float v = n.y * 0.5f + 0.5f;
                 intersections.push_back(Intersection{
                         ip,
-                        (ip - center) / radius,
-                        UV{u, v, 0}
+                        n,
+                        UV{u, 1.0f - v, 0}
                 });
             }
         }
