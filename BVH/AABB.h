@@ -32,10 +32,10 @@ public:
     }
     //Construct a bounding box from the two passed
     AABB(AABB a, AABB b){
-        vec3 small(fmin(a.getMin().x, b.getMin().x),
+        Point small(fmin(a.getMin().x, b.getMin().x),
                    fmin(a.getMin().y, b.getMin().y),
                    fmin(a.getMin().z, b.getMin().z));
-        vec3 big(fmax(a.getMax().x, b.getMax().x),
+        Point big(fmax(a.getMax().x, b.getMax().x),
                  fmax(a.getMax().y, b.getMax().y),
                  fmax(a.getMax().z, b.getMax().z));
         min = small;

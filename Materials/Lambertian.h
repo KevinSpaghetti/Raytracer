@@ -13,9 +13,9 @@ class Lambertian : public Material {
 public:
     Lambertian(const Color a) : albedo(a) {}
 
-    bool scatter(const Intersection &i, Ray& r) const override {
+    bool scatter(const Intersection &i, const Ray& incoming, Ray& outgoing) const override {
         Point direction = glm::normalize(randomized::vector::random(-1.0f, 1.0f));
-        r =  Ray(i.pv, direction);
+        outgoing =  Ray(i.pv, direction);
         return true;
     }
 

@@ -119,9 +119,7 @@ private:
         }
 
         //Check intersections with the scene
-        //need to allow the function hit to overwrite the ray
-        //so we can get back the trasformed ray
-        std::list<ObjectIntersection> intersections = scene.hit(r);
+        std::list<ObjectIntersection> intersections = bvh.hit(r);
 
         //If there are no intersections call the no hit shader
         if (intersections.empty()){
@@ -143,8 +141,8 @@ private:
         std::shared_ptr<Material> material = intersection.node->getMaterial();
         Ray ray;
         Color incoming{0, 0, 0};
-        if(material->scatter(intersection, ray)){
-            incoming = trace_ray(ray, ray_depth - 1);
+        if(material->scatter(intersection, r, ray)){
+            incoming = trace_ray(ray, ray_depth + 1);
         }
         return material->color(intersection, r, incoming);
     }

@@ -17,6 +17,7 @@
 #include "Materials/Lambertian.h"
 #include "Mesh/SphereMesh.h"
 #include "Materials/Metal.h"
+#include "Materials/Dielectric.h"
 
 Node createScene(){
     Node root;
@@ -31,15 +32,17 @@ Node createScene(){
     std::cout << "Done";
 
     auto material_lambert = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-    auto material_metal = make_shared<Metal>(Color(0.5, 0.5, 0.5));
+    auto material_metal = make_shared<Metal>(Color(0.8, 0.8, 0.8));
+    auto material_dielectric = make_shared<Dielectric>(0.5);
 
     Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_lambert);
-    Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_lambert);
-    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_metal);
+    Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_metal);
+    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   1.0), material_metal);
 
     sp2.translate({-0.5, 0.0, 0.0});
-    sp3.translate({0.5, 0.5, 0.0});
+    sp3.translate({ 0.5, 1.0, 0.0});
     root.add(make_shared<Node>(sp2));
+    //sp3.rotate({0.0, 1.0, 0.0}, glm::degrees(45.0f));
     root.add(make_shared<Node>(sp3));
 
     root.add(make_shared<Node>(terrain));
@@ -67,7 +70,7 @@ int main(){
     //Render
     Renderer::Configuration configuration{
         .pixel_samples = 2,
-        .max_ray_depth = 2,
+        .max_ray_depth = 3,
         //TODO: Add backface culling options
         .backface_culling = true
     };

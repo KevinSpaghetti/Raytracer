@@ -10,12 +10,12 @@
 
 class VNMaterial : public Material {
 public:
-    bool scatter(const Intersection &i, Ray &r) const override {
+    bool scatter(const Intersection &i, const Ray& incoming, Ray& outgoing) const override {
         return false;
     }
 
     Color color(const Intersection &i, const Ray &r, const Color &incoming) const override {
-        return glm::clamp((i.pv + Point(1.0f)) / 2.0f, Point(0), Point(1.0f));
+        return (i.pn + Point(1.0f)) * 0.5f;
     }
 
 

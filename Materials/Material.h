@@ -16,13 +16,15 @@
 class Material {
 public:
     //Scatter the ray
-    virtual bool scatter(const Intersection& i, Ray& r) const = 0;
+    virtual bool scatter(const Intersection& i, const Ray& incoming, Ray& outgoing) const = 0;
 
     //Get the color of the material at the surface point
     //Override this function to implement effects or
     //to use the ray and intersection point in the blending process
     virtual Color color(const Intersection& i, const Ray& r, const Color& incoming) const = 0;
 
+
+    //TODO: Add the possibility to add floats and vectors
     void addTexture(std::string key, std::shared_ptr<Texture> texture){
         textures.insert(std::pair<std::string, std::shared_ptr<Texture>>(key, texture));
     }

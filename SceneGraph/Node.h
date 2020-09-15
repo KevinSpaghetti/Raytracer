@@ -10,14 +10,13 @@
 #include "Transform.h"
 #include "Hittable.h"
 #include "../Geom/Intersections.h"
-#include "../Geom/Sphere.h"
 #include "../Mesh/Mesh.h"
 #include "../BVH/Boxable.h"
 #include "../BVH/AABB.h"
 
 class Node : public Hittable, public Transform, public Boxable<AABB> {
 public:
-    Node() : mesh(make_shared<Mesh>()), material() {}
+    Node() : mesh(std::make_shared<Mesh>()), material() {}
 
     Node(const std::shared_ptr<Mesh> mesh,
          const std::shared_ptr<Material> material) : mesh(mesh), material(material)
@@ -31,17 +30,17 @@ public:
         Ray t(pointToObjectSpace(r.getOrigin()),
               directionToObjectSpace(r.getDirection()));
 
-        //Rework to avoid messy code
+
         std::list<Intersection> i = mesh->intersect(t);
         for(Intersection is : i){
             intersections.push_back({
-                                            is,
-                                            this
-                                    });
+                    is,
+                    this
+            });
         }
 
         std::list<ObjectIntersection> child_intersections;
-        for (shared_ptr<Node> n : children) {
+        for (std::shared_ptr<Node> n : children) {
             child_intersections = n->hit(t);
             intersections.splice(intersections.end(), child_intersections);
         }

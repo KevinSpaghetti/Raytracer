@@ -42,11 +42,10 @@ public:
     }
 
     glm::vec3 pointToWorldSpace(glm::vec3 vector) const {
-        glm::mat4 inv = glm::inverse(mTransform);
-        return glm::vec3(inv * glm::vec4(vector, 1.0f));
+        return glm::vec3(mInverse * glm::vec4(vector, 1.0f));
     }
     glm::vec3 directionToWorldSpace(glm::vec3 vector) const {
-        return glm::vec3(glm::transpose(glm::inverse(mTransform)) * glm::vec4(vector, 0.0f));
+        return glm::vec3(glm::transpose(mInverse) * glm::vec4(vector, 0.0f));
     }
 
 protected:

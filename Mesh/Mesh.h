@@ -8,6 +8,7 @@
 #include "../Utils/Structs.h"
 #include "../Geom/Intersection.h"
 #include "../SceneGraph/IntersectTestable.h"
+#include "../BVH/AABB.h"
 
 //Represents an empty mesh
 //TODO: Meshes can have internal datastructures built
