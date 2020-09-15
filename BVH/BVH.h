@@ -62,7 +62,7 @@ public:
         //Transform the intersections from object space back to world space
         for (ObjectIntersection& it : intersections) {
             it.pv = node.pointToWorldSpace(it.pv);
-            it.pn = node.directionToWorldSpace(it.pn);
+            it.pn = glm::normalize(it.pn);
         }
 
         return intersections;

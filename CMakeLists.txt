@@ -41,7 +41,7 @@ add_executable(Test
         Mesh/TriangleMeshData.h
         BVH/BoundingBox.h
         Mesh/PlaneMesh.h
-        Materials/Lambertian.h RenderInfo.h Materials/Metal.h)
+        Materials/Lambertian.h RenderInfo.h Materials/Metal.h Materials/Dielectric.h)
 
 target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})
 target_compile_options(Test PRIVATE -g)

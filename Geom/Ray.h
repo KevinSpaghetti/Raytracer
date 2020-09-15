@@ -12,7 +12,9 @@ public:
     Ray(const glm::vec3 origin, const glm::vec3 direction, const float tmin = 0.001, const float tmax = consts::infinity) : origin(origin), direction(direction), tmin(tmin), tmax(tmax) {}
 
     glm::vec3 getOrigin() const { return origin; }
-    glm::vec3 getDirection() const { return direction; }
+    glm::vec3 getDirection() const {
+        return direction;
+    }
     glm::vec3 at(float distance) const { return origin + (direction * distance); }
 
     float getTmin() const {

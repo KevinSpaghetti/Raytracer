@@ -27,12 +27,12 @@ public:
             if (temp < r.getTmax() && temp > r.getTmin()) {
                 Point ip = r.at(temp);
                 Point n = (ip - center) / radius;
-                float u = atan2(n.x, n.z) / (2*pi) + 0.5;
+                float u = atan2f(n.x, n.z) / (2*pi) + 0.5;
                 float v = n.y * 0.5f + 0.5f;
                 intersections.push_back(Intersection{
                     ip,
                     n,
-                    //Invert the y axis because we are using
+                    //Invert the y axis
                     UV{u, 1.0f - v, 0}
                 });
             }
@@ -40,7 +40,7 @@ public:
             if (temp < r.getTmax() && temp > r.getTmin()) {
                 Point ip = r.at(temp);
                 Point n = (ip - center) / radius;
-                float u = atan2(n.x, n.z) / (2*pi) + 0.5;
+                float u = atan2f(n.x, n.z) / (2*pi) + 0.5;
                 float v = n.y * 0.5f + 0.5f;
                 intersections.push_back(Intersection{
                         ip,

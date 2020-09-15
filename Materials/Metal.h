@@ -10,11 +10,9 @@ class Metal : public Material {
 public:
     Metal(const Color a) : albedo(a) {}
 
-    bool scatter(const Intersection &i, Ray& r) const override {
-        Point v = r.getDirection();
-        Point n = i.pn;
-        Point reflection = v - 2*glm::dot(v,n)*n;
-        r =  Ray(i.pv, reflection);
+    bool scatter(const Intersection &i, const Ray& incoming, Ray& outgoing) const override {
+        Point reflected = glm::reflect(glm::normalize(incoming.getDirection()), glm::normalize(i.pn));
+        outgoing =  Ray(i.pv, reflected);
         return true;
     }
 
