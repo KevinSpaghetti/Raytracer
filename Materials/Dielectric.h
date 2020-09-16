@@ -11,9 +11,16 @@ public:
     Dielectric(float ior) : ior(ior) {}
 
     bool scatter(const Intersection &i, const Ray& incoming, Ray& outgoing) const override {
-        Point refracted = glm::refract(glm::normalize(incoming.getDirection()), glm::normalize(i.pn), ior);
-        outgoing =  Ray(i.pv, refracted);
-        return true;
+        if(glm::dot(incoming.getDirection(), i.pn) > 1){
+            Point refracted = glm::refract(glm::normalize(incoming.getDirection()), glm::normalize(i.pn), ior);
+            outgoing =  Ray(i.pv, refracted);
+            return true;
+        }else{
+            Point refracted = glm::refract(glm::normalize(incoming.getDirection()), glm::normalize(-i.pn), ior);
+            outgoing =  Ray(i.pv, refracted);
+            return true;
+        }
+
     }
 
     Color color(const Intersection &i, const Ray &r, const Color &incoming) const override {

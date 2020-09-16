@@ -19,7 +19,7 @@ public:
 
     //We want to copy the vectors to avoid modifications from third parties
     TriangleMesh(std::vector<Vertex> vertices, std::vector<Triangle> triangles, std::vector<Normal> normals, std::vector<UV> uvs) :
-        data(make_shared<TriangleMeshData>(vertices, triangles, normals, uvs)),
+        data(std::make_shared<TriangleMeshData>(vertices, triangles, normals, uvs)),
         box(buildSurroundingBox()),
         accelerator(std::make_shared<ExhaustiveSearch>(data)){}
 

@@ -12,7 +12,7 @@
 namespace intersections {
     //https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/geometry-of-a-triangle
 
-    bool intersect(const Ray& r, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, float& t, float& u, float& v) {
+    bool intersect(const Ray& r, const Vertex& v1, const Vertex& v2, const Vertex& v3, float& t, float& u, float& v) {
 
         glm::vec3 A = v2 - v1;
         glm::vec3 B = v3 - v1;
@@ -34,10 +34,11 @@ namespace intersections {
 
         t = glm::dot(B, qvec) * invDet;
 
-        //Discard intersections before the beginning of the ray
-        if(t < 0.0001) {
+        //Discard intersections before and after the ray
+        if(t < r.getTmin() || t > r.getTmax()) {
             return false;
         }
+
 
         return true;
     }

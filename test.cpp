@@ -24,8 +24,8 @@ Node createScene(){
 
     //Create teapot
     std::cout << "Loading teapot.obj \n";
-    TriangleMesh geometry = OBJLoader().load("teapot.obj");
-    geometry.buildAccelerationStructure();
+    std::shared_ptr<TriangleMesh> geometry = std::make_shared<TriangleMesh>(OBJLoader().load("teapot.obj"));
+    geometry->buildAccelerationStructure();
     std::cout << "Done \n";
     std::cout << "Loading Texture \n";
     ImageTexture txt = ImageTextureLoader().load("image.png");
@@ -33,26 +33,27 @@ Node createScene(){
 
     auto material_lambert = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
     auto material_metal = make_shared<Metal>(Color(0.8, 0.8, 0.8));
-    auto material_dielectric = make_shared<Dielectric>(0.5);
+    auto material_dielectric = make_shared<Dielectric>(0.01);
 
     Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_lambert);
     Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_metal);
-    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   1.0), material_metal);
+    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_lambert);
 
+    /*
     sp2.translate({-0.5, 0.0, 0.0});
     sp3.translate({ 0.5, 1.0, 0.0});
     root.add(make_shared<Node>(sp2));
     //sp3.rotate({0.0, 1.0, 0.0}, glm::degrees(45.0f));
     root.add(make_shared<Node>(sp3));
+    */
 
     root.add(make_shared<Node>(terrain));
 
-    /*
-    Node pot(std::make_shared<TriangleMesh>(geometry),
-            std::make_shared<Lambertian>(Lambertian(Color{0.5, 0.5, 0.5})));
+
+    Node pot(geometry, material_metal);
+    pot.translate({0.0, 1.0 , 0.0});
     pot.scale({0.3, 0.3, 0.3});
     root.add(make_shared<Node>(pot));
-    */
 
     return root;
 }
@@ -70,12 +71,12 @@ int main(){
     //Render
     Renderer::Configuration configuration{
         .pixel_samples = 2,
-        .max_ray_depth = 3,
+        .max_ray_depth = 4,
         //TODO: Add backface culling options
         .backface_culling = true
     };
 
-    glm::vec3 lookfrom(0,0,1);
+    glm::vec3 lookfrom(0,4.0,4);
     glm::vec3 lookat(0,0,-1);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1;

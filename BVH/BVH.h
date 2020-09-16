@@ -30,9 +30,7 @@ public:
     }
 
 
-    std::list<ObjectIntersection> hit(const Ray& r) override {
-        std::list<ObjectIntersection> intersections;
-
+    void hit(const Ray& r, std::list<ObjectIntersection>& intersections) override {
         //Transform the ray from world space to object space
         Ray t(node.pointToObjectSpace(r.getOrigin()),
               node.directionToObjectSpace(r.getDirection()));
@@ -40,13 +38,12 @@ public:
         //Check the ray hit against this node bounding box
         if(!box.isHit(t)) {
             //If the ray does not hit the hitbox it will not hit the object
-            return intersections;
+            return;
         }
 
         //If the ray hits the bounding box check
         //1. the object inside the bounding box
-        std::list<Intersection> i = node.getMesh()->intersect(t);
-        for(Intersection is : i){
+        for(Intersection is : node.getMesh()->intersect(t)){
             intersections.push_back({
                     is,
                     &node
@@ -55,17 +52,14 @@ public:
 
         //2. the children bounding boxes
         for (const std::shared_ptr<BVH>& child : children){
-            std::list<ObjectIntersection> is = child->hit(t);
-            intersections.splice(intersections.end(), is);
+            child->hit(t, intersections);
         }
 
         //Transform the intersections from object space back to world space
         for (ObjectIntersection& it : intersections) {
             it.pv = node.pointToWorldSpace(it.pv);
-            it.pn = glm::normalize(it.pn);
+            it.pn = node.directionToWorldSpace(glm::normalize(it.pn));
         }
-
-        return intersections;
     }
 
 private:

@@ -119,7 +119,8 @@ private:
         }
 
         //Check intersections with the scene
-        std::list<ObjectIntersection> intersections = bvh.hit(r);
+        std::list<ObjectIntersection> intersections;
+        bvh.hit(r, intersections);
 
         //If there are no intersections call the no hit shader
         if (intersections.empty()){
@@ -151,7 +152,7 @@ private:
 
     std::atomic<int> samples_completed = 0;
     int samples_needed = 0;
-    int tile_number = 1;
+    int tile_number = 4;
     Camera camera;
     Node scene;
     BVH bvh;

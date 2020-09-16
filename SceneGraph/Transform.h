@@ -35,21 +35,20 @@ public:
 
 public:
     glm::vec3 pointToObjectSpace(glm::vec3 vector) const {
-        return glm::vec3(mTransform * glm::vec4(vector, 1.0f));
+        return mTransform * glm::vec4(vector, 1.0f);
     }
     glm::vec3 directionToObjectSpace(glm::vec3 vector) const {
-        return glm::vec3(glm::transpose(mTransform) * glm::vec4(vector, 0.0f));
+        return glm::transpose(mTransform) * glm::vec4(vector, 0.0f);
     }
 
     glm::vec3 pointToWorldSpace(glm::vec3 vector) const {
-        return glm::vec3(mInverse * glm::vec4(vector, 1.0f));
+        return mInverse * glm::vec4(vector, 1.0f);
     }
     glm::vec3 directionToWorldSpace(glm::vec3 vector) const {
-        return glm::vec3(glm::transpose(mInverse) * glm::vec4(vector, 0.0f));
+        return glm::transpose(mInverse) * glm::vec4(vector, 0.0f);
     }
 
 protected:
     glm::mat4 mTransform;
     glm::mat4 mInverse;
-
 };
