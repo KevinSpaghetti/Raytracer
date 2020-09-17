@@ -24,7 +24,7 @@ public:
         mInverse = glm::scale(mInverse, axis);
     }
     void rotate(glm::vec3 axis, float angle){
-        mTransform = glm::rotate(mTransform, -angle, axis);
+        mTransform = glm::inverse(glm::rotate(mTransform, angle, axis));
         mInverse = glm::rotate(mInverse, angle, axis);
     }
 

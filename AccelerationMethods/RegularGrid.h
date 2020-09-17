@@ -121,9 +121,9 @@ public:
         while (!finished) {
             int id = cell.z * resolution.x * resolution.y + cell.y * resolution.x + cell.x;
             for (TriangleInfo t : cells[id].overlaps) {
-                float d, u, v;
-                if(data->test(r, t.tri, d, u, v)){
-                    ins.emplace_back(data->interpolate(t.tri, u, v));
+                Intersection i;
+                if(data->test(r, t.tri, i)){
+                    ins.emplace_back(i);
                 }
             }
             int k = ((nextCrossingT[0] < nextCrossingT[1]) << 2) +

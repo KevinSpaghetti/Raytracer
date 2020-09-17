@@ -17,7 +17,7 @@
 #include "Materials/Lambertian.h"
 #include "Mesh/SphereMesh.h"
 #include "Materials/Metal.h"
-#include "Materials/Dielectric.h"
+
 
 Node createScene(){
     Node root;
@@ -32,28 +32,22 @@ Node createScene(){
     std::cout << "Done";
 
     auto material_lambert = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-    auto material_metal = make_shared<Metal>(Color(0.8, 0.8, 0.8));
-    auto material_dielectric = make_shared<Dielectric>(0.01);
+    auto material_metal = make_shared<Metal>(Color(0.8, 0.8, 0.8), 0.0);
+    auto material_metal_fuzz = make_shared<Metal>(Color(0.8, 0.8, 0.8), 0.3);
 
     Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_lambert);
-    Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_metal);
-    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_lambert);
+    Node sp1(make_shared<SphereMesh>(Point{0.0,    0.0, -0.5},   0.5), material_metal);
+    Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -0.5},   0.5), material_metal_fuzz);
+    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -0.5},   0.5), material_lambert);
 
-    /*
-    sp2.translate({-0.5, 0.0, 0.0});
-    sp3.translate({ 0.5, 1.0, 0.0});
+    sp1.translate({0.0, 0.0, 0.0});
+    sp2.translate({-1.0, 0.0, 0.0});
+    sp3.translate({ 1.0, 0.0, 0.0});
+    root.add(make_shared<Node>(sp1));
     root.add(make_shared<Node>(sp2));
-    //sp3.rotate({0.0, 1.0, 0.0}, glm::degrees(45.0f));
     root.add(make_shared<Node>(sp3));
-    */
 
     root.add(make_shared<Node>(terrain));
-
-
-    Node pot(geometry, material_metal);
-    pot.translate({0.0, 1.0 , 0.0});
-    pot.scale({0.3, 0.3, 0.3});
-    root.add(make_shared<Node>(pot));
 
     return root;
 }
@@ -71,12 +65,12 @@ int main(){
     //Render
     Renderer::Configuration configuration{
         .pixel_samples = 2,
-        .max_ray_depth = 4,
+        .max_ray_depth = 10,
         //TODO: Add backface culling options
-        .backface_culling = true
+        .backface_culling = false
     };
 
-    glm::vec3 lookfrom(0,4.0,4);
+    glm::vec3 lookfrom(0,0.0,1);
     glm::vec3 lookat(0,0,-1);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1;

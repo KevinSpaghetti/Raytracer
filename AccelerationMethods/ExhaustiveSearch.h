@@ -19,9 +19,9 @@ public:
         std::list<Intersection> ins;
 
         for (Triangle tri : data->triangles) {
-            float d, u, v;
-            if(data->test(r, tri, d, u, v)){
-                ins.emplace_back(data->interpolate(tri, u, v));
+            Intersection i;
+            if(data->test(r, tri, i)){
+                ins.emplace_back(i);
             }
         }
 

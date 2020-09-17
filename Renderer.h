@@ -60,6 +60,9 @@ public:
         //Raytrace the scene
         std::vector<std::thread> workers;
 
+        Ray test({-1.76467013, -0.00251743244, -0.558851004}, {-0.70301044, -0.00447021239, -0.711165487});
+        Color i = trace_ray(test, 0);
+
         //Thread that updates the stats about the samples completed
         workers.emplace_back(std::thread(&Renderer::update_stats, this));
         for (Tile<Color> tile : tiles){
@@ -114,8 +117,8 @@ private:
     Color trace_ray(Ray r, int ray_depth) {
 
         //If the ray has reached max depth then call the max depth shader
-        if(ray_depth > configuration.max_ray_depth) {
-            return Color{0, 0, 0}; //Return a background material color
+        if (ray_depth > configuration.max_ray_depth) {
+            return maxRayDepthReached(r); //Return a background material color
         }
 
         //Check intersections with the scene
@@ -123,36 +126,59 @@ private:
         bvh.hit(r, intersections);
 
         //If there are no intersections call the no hit shader
-        if (intersections.empty()){
-            Point unit_direction = glm::normalize(r.getDirection());
-            float t = 0.5f*(unit_direction.y + 1.0);
-            return (1.0f-t) * Color(1.0) + t * Color{0.5, 0.7, 1.0};
+        if (intersections.empty()) {
+            return noIntersections(r);
         }
 
-        ObjectIntersection intersection = intersections.front();
-        //TODO: Change to surfaceinteraction
-        //TODO: Maybe handle this and the bvh generation with a middleware class between the renderer and the hittable
-        for(ObjectIntersection i : intersections){
-            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - intersection.pv)){
-                intersection = i;
+        //If backface culling is activated pick the intersection
+        //with a face that is front
+        ObjectIntersection intersection;
+        if (configuration.backface_culling) {
+            intersection = intersections.front();
+            while (intersections.empty() || intersection.isFront == true) {
+                intersections.pop_front();
+            }
+            if (intersections.empty()) {
+                noIntersections(r);
+            }
+        } else {
+            intersection = intersections.front();
+            for (ObjectIntersection i : intersections) {
+                if (glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - intersection.pv)) {
+                    intersection = i;
+                }
             }
         }
 
+
         //Resolve the material color
         std::shared_ptr<Material> material = intersection.node->getMaterial();
-        Ray ray;
+        Ray ray({0, 0, 0}, {0, 0, 0});
         Color incoming{0, 0, 0};
-        if(material->scatter(intersection, r, ray)){
+        if (material->scatter(intersection, r, ray)) {
             incoming = trace_ray(ray, ray_depth + 1);
         }
+
         return material->color(intersection, r, incoming);
+    }
+
+protected:
+
+    Color maxRayDepthReached(const Ray& r) const {
+        return Color{1.0, 0, 0};
+    }
+
+    Color noIntersections(const Ray& r) const {
+        Point unit_direction = r.getDirection();
+        float t = 0.5f * (unit_direction.y + 1.0);
+        return (1.0f - t) * Color(1.0) + t * Color{0.5, 0.7, 1.0};
     }
 
 private:
 
     std::atomic<int> samples_completed = 0;
     int samples_needed = 0;
-    int tile_number = 4;
+    int tile_number = 1;
     Camera camera;
     Node scene;
     BVH bvh;
