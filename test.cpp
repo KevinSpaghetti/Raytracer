@@ -41,8 +41,8 @@ Node createScene(){
     Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -0.5},   0.5), material_lambert);
 
     sp1.translate({0.0, 0.0, 0.0});
-    sp2.translate({-1.0, 0.0, 0.0});
-    sp3.translate({ 1.0, 0.0, 0.0});
+    sp2.translate({-1.2, 0.0, 0.0});
+    sp3.translate({ 1.2, 0.0, 0.0});
     root.add(make_shared<Node>(sp1));
     root.add(make_shared<Node>(sp2));
     root.add(make_shared<Node>(sp3));
@@ -66,7 +66,6 @@ int main(){
     Renderer::Configuration configuration{
         .pixel_samples = 2,
         .max_ray_depth = 10,
-        //TODO: Add backface culling options
         .backface_culling = false
     };
 

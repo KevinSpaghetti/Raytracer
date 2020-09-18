@@ -8,14 +8,23 @@
 
 class Ray {
 public:
-    Ray() {}
-    Ray(const glm::vec3 origin, const glm::vec3 direction, const float tmin = 0.001, const float tmax = consts::infinity) : origin(origin), direction(direction), tmin(tmin), tmax(tmax) {}
+    //Init the ray with some values so we don't get errors for uninitialized memory
+    Ray() :
+        origin({0, 0, 0}),
+        direction({0, 0, 0}),
+        tmin(0),
+        tmax(+consts::infinity) {}
+    Ray(const Point origin, const Normal direction, const float tmin = 0.001, const float tmax = consts::infinity) :
+        origin(origin),
+        direction(direction),
+        tmin(tmin),
+        tmax(tmax) {}
 
-    glm::vec3 getOrigin() const { return origin; }
-    glm::vec3 getDirection() const {
+    Point getOrigin() const { return origin; }
+    Normal getDirection() const {
         return direction;
     }
-    glm::vec3 at(float distance) const { return origin + (direction * distance); }
+    Point at(float distance) const { return origin + (direction * distance); }
 
     float getTmin() const {
         return tmin;
@@ -25,8 +34,8 @@ public:
     }
 
 private:
-    glm::vec3 origin;
-    glm::vec3 direction;
+    Point origin;
+    Normal direction;
 
     float tmin;
     float tmax;

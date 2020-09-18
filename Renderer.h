@@ -17,6 +17,7 @@
 #include "Utils/Random.h"
 #include "BVH/BVH.h"
 #include "Geom/ObjectIntersection.h"
+#include "Sampler/SceneSampler.h"
 
 class Renderer {
 public:
@@ -60,8 +61,11 @@ public:
         //Raytrace the scene
         std::vector<std::thread> workers;
 
-        Ray test({-1.76467013, -0.00251743244, -0.558851004}, {-0.70301044, -0.00447021239, -0.711165487});
-        Color i = trace_ray(test, 0);
+        //Create the sampler
+        sampler = std::make_unique<SceneSampler>(&bvh, SceneSampler::SceneSamplerConfiguration{
+                configuration.max_ray_depth,
+                configuration.backface_culling
+        });
 
         //Thread that updates the stats about the samples completed
         workers.emplace_back(std::thread(&Renderer::update_stats, this));
@@ -93,16 +97,13 @@ private:
             for (int j = 0; j < tile.getWidth(); ++j) {
                 Color pixel_color{0, 0, 0};
                 for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
-                    Color sample_color;
                     auto v = float(tile.getStarty() + i + randomized::scalar::random()) / (tile.getHeight() * tile_number);
                     auto h = float(tile.getStartx() + j + randomized::scalar::random()) / (tile.getWidth() * tile_number);
 
                     //Ray r = Ray(origin, (upper_left_corner + h * horizontal - v * vertical) - origin);
                     Ray r = camera.get_ray(h, v);
 
-                    sample_color = trace_ray(r, 0);
-
-                    pixel_color += sample_color;
+                    pixel_color += sampler->sample(r);
                 }
                 tile(i, j) = pixel_color / static_cast<float>(configuration.pixel_samples);
             }
@@ -111,71 +112,9 @@ private:
         }
     }
 
-    //TODO: Add no hit materials and max depth reached materials
-    //TODO: Remember the last BVH or Scene node hit and
-    //      check that first
-    Color trace_ray(Ray r, int ray_depth) {
-
-        //If the ray has reached max depth then call the max depth shader
-        if (ray_depth > configuration.max_ray_depth) {
-            return maxRayDepthReached(r); //Return a background material color
-        }
-
-        //Check intersections with the scene
-        std::list<ObjectIntersection> intersections;
-        bvh.hit(r, intersections);
-
-        //If there are no intersections call the no hit shader
-        if (intersections.empty()) {
-            return noIntersections(r);
-        }
-
-        //If backface culling is activated pick the intersection
-        //with a face that is front
-        ObjectIntersection intersection;
-        if (configuration.backface_culling) {
-            intersection = intersections.front();
-            while (intersections.empty() || intersection.isFront == true) {
-                intersections.pop_front();
-            }
-            if (intersections.empty()) {
-                noIntersections(r);
-            }
-        } else {
-            intersection = intersections.front();
-            for (ObjectIntersection i : intersections) {
-                if (glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - intersection.pv)) {
-                    intersection = i;
-                }
-            }
-        }
-
-
-        //Resolve the material color
-        std::shared_ptr<Material> material = intersection.node->getMaterial();
-        Ray ray({0, 0, 0}, {0, 0, 0});
-        Color incoming{0, 0, 0};
-        if (material->scatter(intersection, r, ray)) {
-            incoming = trace_ray(ray, ray_depth + 1);
-        }
-
-        return material->color(intersection, r, incoming);
-    }
-
-protected:
-
-    Color maxRayDepthReached(const Ray& r) const {
-        return Color{1.0, 0, 0};
-    }
-
-    Color noIntersections(const Ray& r) const {
-        Point unit_direction = r.getDirection();
-        float t = 0.5f * (unit_direction.y + 1.0);
-        return (1.0f - t) * Color(1.0) + t * Color{0.5, 0.7, 1.0};
-    }
 
 private:
-
+    std::unique_ptr<SceneSampler> sampler;
     std::atomic<int> samples_completed = 0;
     int samples_needed = 0;
     int tile_number = 1;
