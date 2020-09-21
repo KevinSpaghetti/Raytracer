@@ -12,16 +12,16 @@
 
 class ColorBufferFormatPPM : public ColorBufferFormat {
 public:
-    ColorBufferFormatPPM(Buffer<Color> buffer) : buffer(buffer){};
+    ColorBufferFormatPPM(const Buffer<Color>* buffer) : buffer(buffer){};
 
-    std::string serialize() {
+    std::string serialize() override {
         std::ostringstream result;
         result << "P3" << "\n";
-        result << buffer.getWidth() << ' ' << buffer.getHeight() << '\n' << 255 << '\n';
+        result << buffer->getWidth() << ' ' << buffer->getHeight() << '\n' << 255 << '\n';
 
-        for (int i = 0; i < buffer.getHeight(); ++i) {
-            for (int j = 0; j < buffer.getWidth(); ++j) {
-                Color c = buffer(i, j);
+        for (int i = 0; i < buffer->getHeight(); ++i) {
+            for (int j = 0; j < buffer->getWidth(); ++j) {
+                Color c = buffer->at(i, j);
                 Color g = glm::sqrt(c) * 255.0f;
                 result << static_cast<int>(g.r) << " "
                        << static_cast<int>(g.g) << " "
@@ -32,5 +32,5 @@ public:
     };
 
 private:
-    Buffer<Color> buffer;
+    const Buffer<Color>* buffer;
 };

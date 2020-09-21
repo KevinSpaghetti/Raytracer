@@ -1,5 +1,4 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include "../consts.h"
 #include "Random.h"
@@ -28,18 +27,17 @@ public:
         lens_radius = aperture / 2;
     }
 
-    Ray get_ray(float s, float t) const {
+    Ray get(float s, float t) const {
         //vec3 rd = lens_radius * randomized::vector::in_unit_disk();
         vec3 offset = {0, 0, 0}; //u * rd.x + v * rd.y;
         return Ray(origin + offset, upper_left_corner + s*horizontal - t*vertical - origin - offset);
     }
 
 private:
-    vec3 origin;
-    vec3 upper_left_corner;
-    vec3 horizontal;
-    vec3 vertical;
-    vec3 u, v, w;
-    float lens_radius;
+    vec3 origin{};
+    vec3 upper_left_corner{};
+    vec3 horizontal{};
+    vec3 vertical{};
+    vec3 u{}, v{}, w{};
+    float lens_radius{};
 };
-#endif

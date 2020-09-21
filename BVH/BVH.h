@@ -11,7 +11,7 @@
 //TODO: Build a better bvh by not using the ordering in the scene graph
 //TODO: every bvh node is responsible for holding its bounding box and checking the intersection when necessary
 //Not boxable since extern agents do not need to know that the class relies on bounding boxes
-class BVH : public Hittable{
+class BVH : public Hittable {
 public:
     BVH(){};
 
@@ -30,7 +30,7 @@ public:
     }
 
 
-    void hit(const Ray& r, std::list<ObjectIntersection>& intersections) override {
+    void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) override {
         //Transform the ray from world space to object space
         Ray t(node.pointToObjectSpace(r.getOrigin()),
               node.directionToObjectSpace(r.getDirection()));
@@ -51,14 +51,14 @@ public:
         }
 
         //2. the children bounding boxes
-        for (const std::shared_ptr<BVH>& child : children){
+        for (auto child : children){
             child->hit(t, intersections);
         }
 
         //Transform the intersections from object space back to world space
         for (ObjectIntersection& it : intersections) {
             it.pv = node.pointToWorldSpace(it.pv);
-            it.pn = node.directionToWorldSpace(glm::normalize(it.pn));
+            it.pn = node.directionToWorldSpace(it.pn);
         }
     }
 
@@ -73,5 +73,5 @@ private:
 protected:
     AABB box;
     Node node;
-    std::list<shared_ptr<BVH>> children;
+    std::vector<shared_ptr<BVH>> children;
 };

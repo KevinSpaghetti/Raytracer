@@ -47,7 +47,7 @@ struct TriangleMeshData {
                 Normal n1 = normals[t.nma];
                 Normal n2 = normals[t.nmb];
                 Normal n3 = normals[t.nmc];
-                nm = glm::normalize((1.0f-u-v) * n1 + u * n2 + v * n3);
+                nm = (1.0f-u-v) * n1 + u * n2 + v * n3;
             }
             if(!uvs.empty()){
                 UV uv1 = uvs[t.uva];

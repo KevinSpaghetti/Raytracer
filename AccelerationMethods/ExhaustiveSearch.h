@@ -18,12 +18,12 @@ public:
     std::list<Intersection> intersect(const Ray& r) const override {
         std::list<Intersection> ins;
 
-        for (Triangle tri : data->triangles) {
-            Intersection i;
-            if(data->test(r, tri, i)){
+        std::for_each(data->triangles.begin(), data->triangles.end(), [&](Triangle t){
+            Intersection i{};
+            if(data->test(r, t, i)){
                 ins.emplace_back(i);
             }
-        }
+        });
 
         return ins;
     }

@@ -7,7 +7,7 @@
 #include "../Utils/Structs.h"
 #include "../Geom/Ray.h"
 
-class Sampler {
+class Integrator {
 public:
 
     virtual Color sample(const Ray& r) const = 0;

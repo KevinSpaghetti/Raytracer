@@ -16,7 +16,7 @@ namespace intersections {
 
         glm::vec3 A = v2 - v1;
         glm::vec3 B = v3 - v1;
-        glm::vec3 pvec = glm::cross(glm::normalize(r.getDirection()), B);
+        glm::vec3 pvec = glm::cross(r.getDirection(), B);
         float det = glm::dot(A, pvec);
 
         if(det < consts::epsilon) isFrontFace = false; //Backface culling
@@ -29,7 +29,7 @@ namespace intersections {
         if(u < 0 || u > 1) return false;
 
         glm::vec3 qvec = glm::cross(tvec, A);
-        v = glm::dot(glm::normalize(r.getDirection()), qvec) * invDet;
+        v = glm::dot(r.getDirection(), qvec) * invDet;
         if(v < 0 || u + v > 1) return false;
 
         t = glm::dot(B, qvec) * invDet;
@@ -38,8 +38,6 @@ namespace intersections {
         if(t < r.getTmin() || t > r.getTmax()) {
             return false;
         }
-
-
         return true;
     }
 

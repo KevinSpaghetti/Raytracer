@@ -21,11 +21,11 @@ public:
     TriangleMesh(std::vector<Vertex> vertices, std::vector<Triangle> triangles, std::vector<Normal> normals, std::vector<UV> uvs) :
         data(std::make_shared<TriangleMeshData>(vertices, triangles, normals, uvs)),
         box(buildSurroundingBox()),
-        accelerator(std::make_shared<ExhaustiveSearch>(data)){}
+        accelerator(std::make_unique<ExhaustiveSearch>(data)){}
 
     void buildAccelerationStructure(){
         std::cout << "Building acceleration structure\n";
-        accelerator = std::make_shared<RegularGrid>(data);
+        accelerator = std::make_unique<RegularGrid>(data);
         std::cout << "Done\n";
     }
 

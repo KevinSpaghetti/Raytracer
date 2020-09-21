@@ -23,12 +23,13 @@ Node createScene(){
     Node root;
 
     //Create teapot
-    std::cout << "Loading teapot.obj \n";
-    std::shared_ptr<TriangleMesh> geometry = std::make_shared<TriangleMesh>(OBJLoader().load("teapot.obj"));
+    const std::string filename = "teapot.obj";
+    std::cout << "Loading " << filename << "\n";
+    std::shared_ptr<TriangleMesh> geometry = std::make_shared<TriangleMesh>(OBJLoader().load(filename));
     geometry->buildAccelerationStructure();
     std::cout << "Done \n";
     std::cout << "Loading Texture \n";
-    ImageTexture txt = ImageTextureLoader().load("image.png");
+    //ImageTexture txt = ImageTextureLoader().load("image.png");
     std::cout << "Done";
 
     auto material_lambert = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
@@ -40,6 +41,7 @@ Node createScene(){
     Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -0.5},   0.5), material_metal_fuzz);
     Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -0.5},   0.5), material_lambert);
 
+    /*
     sp1.translate({0.0, 0.0, 0.0});
     sp2.translate({-1.2, 0.0, 0.0});
     sp3.translate({ 1.2, 0.0, 0.0});
@@ -48,6 +50,12 @@ Node createScene(){
     root.add(make_shared<Node>(sp3));
 
     root.add(make_shared<Node>(terrain));
+    */
+
+    auto n = make_shared<Node>(geometry, material_lambert);
+    n->scale({0.3, 0.3, 0.3});
+    root.add(n);
+
 
     return root;
 }
@@ -64,12 +72,12 @@ int main(){
 
     //Render
     Renderer::Configuration configuration{
-        .pixel_samples = 2,
-        .max_ray_depth = 10,
+        .pixel_samples = 1,
+        .max_ray_depth = 100,
         .backface_culling = false
     };
 
-    glm::vec3 lookfrom(0,0.0,1);
+    glm::vec3 lookfrom(0,4.5,4.5);
     glm::vec3 lookat(0,0,-1);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1;
@@ -93,13 +101,11 @@ int main(){
 
 
     std::cout << "Writing Buffer \n";
-    std::shared_ptr<ColorBufferFormat> formatted_buffer;
-    std::shared_ptr<RenderOutput> output;
 
     //Format the buffer for a ppm file format output
-    formatted_buffer = std::make_shared<ColorBufferFormatPPM>(color);
+    auto formatted_buffer = std::make_unique<ColorBufferFormatPPM>(&color);
     //Create a render output on a file
-    output = std::make_shared<FileRenderOutput>("render.ppm");
+    auto output = std::make_unique<FileRenderOutput>("render.ppm");
     //Write the formatted output
     output->write(*formatted_buffer);
     std::cout << "Done \n" << std::endl;

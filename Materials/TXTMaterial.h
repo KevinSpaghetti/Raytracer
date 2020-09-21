@@ -9,7 +9,7 @@
 class TXTMaterial : public Material {
 public:
     bool scatter(const Intersection &i, const Ray& incoming, Ray& outgoing) const override {
-        Point direction = glm::normalize(randomized::vector::random(-1.0f, 1.0f));
+        Point direction = randomized::vector::random(-1.0f, 1.0f);
         outgoing =  Ray(i.pv, direction);
         return true;
     }

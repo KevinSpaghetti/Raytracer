@@ -11,7 +11,7 @@
 template<typename T>
 class Tile {
 public:
-    Tile(Buffer<T>& buffer, int startx, int starty, int width, int height) : buffer(buffer), startx(startx), starty(starty), width(width), height(height){}
+    Tile(Buffer<T>& buffer, glm::vec2 start, glm::vec2 dimensions) : buffer(buffer), start(start), dimensions(dimensions){}
 
     //Split the Rect in n*n smaller rects
     //0 split: The full tile
@@ -25,7 +25,7 @@ public:
 
         std::vector<Tile> tiles;
         if (n == 0 || n == 1){
-            tiles.emplace_back(Tile<T>(r, 0, 0, r.getWidth(), r.getHeight()));
+            tiles.emplace_back(Tile<T>(r, {0, 0}, {r.getWidth(), r.getHeight()}));
             return tiles;
         }
 
@@ -44,7 +44,7 @@ public:
         tiles.reserve(ntiles);
         for (int i = 0; i < r.getWidth(); i += tile_width) {
             for (int j = 0; j < r.getHeight(); j += tile_height) {
-                Tile<T> t(r, i, j, tile_width, tile_height);
+                Tile<T> t(r, {i, j}, {tile_width, tile_height});
                 tiles.push_back(t);
             }
         }
@@ -53,26 +53,19 @@ public:
     }
 
     T& operator()(int row, int column){
-        return buffer(starty + row, startx + column);
+        return buffer(start.y + row, start.x + column);
     }
 
-    int getStartx() {
-        return startx;
+    glm::vec2 getStart(){
+        return start;
     }
-    int getStarty() {
-        return starty;
+    glm::vec2 getDimensions(){
+        return dimensions;
     }
-    int getWidth(){
-        return width;
-    }
-    int getHeight(){
-        return height;
-    }
+
 
 private:
     Buffer<T>& buffer;
-    int startx;
-    int starty;
-    int width;
-    int height;
+    glm::vec2 start;
+    glm::vec2 dimensions;
 };

@@ -16,7 +16,7 @@ class FileRenderOutput : public RenderOutput {
 public:
     FileRenderOutput(std::string filename, std::string base_path = "./") : filename(filename), base_path(base_path) {};
 
-    void write(ColorBufferFormat& format) const {
+    void write(ColorBufferFormat& format) const override {
         std::string fullpath = base_path + filename;
 
         std::ofstream file;

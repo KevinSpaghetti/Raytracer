@@ -11,20 +11,27 @@ public:
     //Init the ray with some values so we don't get errors for uninitialized memory
     Ray() :
         origin({0, 0, 0}),
-        direction({0, 0, 0}),
+        direction({0, 0, 0}), //Dangerous when normalizing causes crash
         tmin(0),
         tmax(+consts::infinity) {}
-    Ray(const Point origin, const Normal direction, const float tmin = 0.001, const float tmax = consts::infinity) :
+    Ray(const Point origin, const Normal direction, const float tmin = consts::epsilon, const float tmax = consts::infinity) :
         origin(origin),
-        direction(direction),
+        direction(glm::normalize(direction)),
         tmin(tmin),
         tmax(tmax) {}
 
-    Point getOrigin() const { return origin; }
+    Point getOrigin() const {
+        return origin;
+    }
     Normal getDirection() const {
+        assert(glm::length(direction) > 1-consts::epsilon);
+        assert(glm::length(direction) < 1+consts::epsilon);
         return direction;
     }
-    Point at(float distance) const { return origin + (direction * distance); }
+
+    Point at(float distance) const {
+        return origin + (direction * distance);
+    }
 
     float getTmin() const {
         return tmin;
