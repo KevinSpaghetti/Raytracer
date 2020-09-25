@@ -22,7 +22,7 @@ public:
          const std::shared_ptr<Material> material) : mesh(mesh), material(material)
     {}
 
-    void hit(const Ray& r, std::list<ObjectIntersection>& intersections) override {
+    void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) override {
 
         //Apply the transform to the ray
         //The recursion applies the transforms without the need to explicitly multiply the matrices
@@ -37,8 +37,7 @@ public:
             });
         }
 
-        std::list<ObjectIntersection> child_intersections;
-        for (std::shared_ptr<Node> n : children) {
+        for (auto n : children) {
             n->hit(t, intersections);
         }
 
@@ -61,11 +60,11 @@ public:
         children.remove(child);
     }
 
-    std::shared_ptr<Mesh> getMesh(){
-        return mesh;
+    Mesh* getMesh(){
+        return mesh.get();
     }
-    std::shared_ptr<Material> getMaterial(){
-        return material;
+    Material* getMaterial(){
+        return material.get();
     }
     std::list<std::shared_ptr<Node>> getChildren(){
         return children;

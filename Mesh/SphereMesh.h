@@ -33,7 +33,8 @@ public:
                     ip,
                     n,
                     //Invert the y axis
-                    UV{u, 1.0f - v, 0}
+                    UV{u, 1.0f - v, 0},
+                    true
                 });
             }
             temp = (-half_b + root) / a;
@@ -45,7 +46,8 @@ public:
                 intersections.push_back(Intersection{
                         ip,
                         n,
-                        UV{u, 1.0f - v, 0}
+                        UV{u, 1.0f - v, 0},
+                        false
                 });
             }
         }

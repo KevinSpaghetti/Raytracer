@@ -8,10 +8,10 @@
 
 class Metal : public Material {
 public:
-    Metal(const Color a) : albedo(a) {}
+    Metal(const Color a, const float fuzziness) : albedo(a), fuzziness(fuzziness) {}
 
     bool scatter(const Intersection &i, const Ray& incoming, Ray& outgoing) const override {
-        Point reflected = glm::reflect(glm::normalize(incoming.getDirection()), glm::normalize(i.pn));
+        Point reflected = glm::reflect(incoming.getDirection(), i.pn + fuzziness * randomized::vector::in_unit_sphere());
         outgoing =  Ray(i.pv, reflected);
         return true;
     }
@@ -22,4 +22,5 @@ public:
 
 private:
     Color albedo;
+    float fuzziness;
 };

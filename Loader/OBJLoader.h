@@ -91,6 +91,6 @@ public:
 
         file.close();
 
-        return TriangleMesh(vertices, triangles, normals, uvs);
+        return TriangleMesh(std::move(vertices), std::move(triangles), std::move(normals), std::move(uvs));
     }
 };

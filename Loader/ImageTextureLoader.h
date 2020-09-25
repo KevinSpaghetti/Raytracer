@@ -22,12 +22,13 @@ public:
 
         Buffer<Color> data(width, height);
 
+        //Remap the rgb from 0-255 to 0-1
         int ptr = 0;
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
-                float r = 0.0 + (static_cast<int>(img[ptr++]) - 0) * (1.0 - 0.0) / (255.0 - 0.0);
-                float g = 0.0 + (static_cast<int>(img[ptr++]) - 0) * (1.0 - 0.0) / (255.0 - 0.0);
-                float b = 0.0 + (static_cast<int>(img[ptr++]) - 0) * (1.0 - 0.0) / (255.0 - 0.0);
+                float r = static_cast<int>(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f);
+                float g = static_cast<int>(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f);
+                float b = static_cast<int>(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f);
                 data(i, j) = {r, g, b};
             }
         }

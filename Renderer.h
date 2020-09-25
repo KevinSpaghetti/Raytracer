@@ -17,6 +17,8 @@
 #include "Utils/Random.h"
 #include "BVH/BVH.h"
 #include "Geom/ObjectIntersection.h"
+#include "Sampler/BackwardIntegrator.h"
+#include "Sampler/NormalDebugIntegrator.h"
 
 class Renderer {
 public:
@@ -36,9 +38,11 @@ public:
         std::vector<Tile<Color>> tiles = Tile<Color>::split(target, tile_number);
         int n_tile = 1;
         for (Tile<Color> t : tiles) {
+            glm::vec2 tile_dimensions = t.getDimensions();
+            glm::vec2 tile_start = t.getStart();
             std::cout << n_tile << " tile\n"
-                      << "\t Position ( " << t.getStartx() << " , " << t.getStarty() << ")\n"
-                      << "\t Size     ( " << t.getWidth()  << " , " << t.getHeight() << ")\n";
+                      << "\t Position ( " << tile_start.x << " , " << tile_start.y << ")\n"
+                      << "\t Size     ( " << tile_dimensions.x  << " , " << tile_dimensions.y << ")\n";
             ++n_tile;
         }
 
@@ -53,12 +57,18 @@ public:
 
         //Calculate samples needed to finish
         for (Tile<Color> tile : tiles) {
-            samples_needed += tile.getHeight() * tile.getWidth() * configuration.pixel_samples;
+            samples_needed += tile.getDimensions().x * tile.getDimensions().y * configuration.pixel_samples;
         }
 
         std::cout << "Need " << samples_needed << " Samples\n";
         //Raytrace the scene
         std::vector<std::thread> workers;
+
+        //Create the sampler
+        sampler = std::make_unique<BackwardIntegrator>(&bvh, BackwardIntegrator::SceneSamplerConfiguration{
+                configuration.max_ray_depth,
+                configuration.backface_culling
+        });
 
         //Thread that updates the stats about the samples completed
         workers.emplace_back(std::thread(&Renderer::update_stats, this));
@@ -85,76 +95,37 @@ private:
         std::cout << "\n";
     }
 
-    void trace_tile(Tile<Color> tile){
-        for (int i = 0; i < tile.getHeight(); ++i) {
-            for (int j = 0; j < tile.getWidth(); ++j) {
+    //TODO: Refactor tile code to return an iterator that iterates
+    //over every pixel
+    void trace_tile(Tile<Color>& tile){
+        glm::vec2 tile_dimensions = tile.getDimensions();
+        for (int i = 0; i < tile_dimensions.y; ++i) {
+            for (int j = 0; j < tile_dimensions.x; ++j) {
                 Color pixel_color{0, 0, 0};
                 for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
-                    Color sample_color;
-                    auto v = float(tile.getStarty() + i + randomized::scalar::random()) / (tile.getHeight() * tile_number);
-                    auto h = float(tile.getStartx() + j + randomized::scalar::random()) / (tile.getWidth() * tile_number);
+                    glm::vec2 random_2D = {randomized::scalar::random(), randomized::scalar::random()};
+                    glm::vec2 sample_coords = (tile.getStart() + glm::vec2{j, i} + random_2D) / (tile.getDimensions() * static_cast<float>(tile_number));
 
-                    //Ray r = Ray(origin, (upper_left_corner + h * horizontal - v * vertical) - origin);
-                    Ray r = camera.get_ray(h, v);
+                    Ray r = camera.get(sample_coords.x, sample_coords.y);
 
-                    sample_color = trace_ray(r, 0);
-
-                    pixel_color += sample_color;
+                    pixel_color += sampler->sample(r);
                 }
                 tile(i, j) = pixel_color / static_cast<float>(configuration.pixel_samples);
             }
             //Update samples every line to avoid lock overhead
-            samples_completed += tile.getWidth() * configuration.pixel_samples;
+            samples_completed += tile_dimensions.x * configuration.pixel_samples;
         }
     }
 
-    //TODO: Add no hit materials and max depth reached materials
-    //TODO: Remember the last BVH or Scene node hit and
-    //      check that first
-    Color trace_ray(Ray r, int ray_depth) {
-
-        //If the ray has reached max depth then call the max depth shader
-        if(ray_depth > configuration.max_ray_depth) {
-            return Color{0, 0, 0}; //Return a background material color
-        }
-
-        //Check intersections with the scene
-        std::list<ObjectIntersection> intersections;
-        bvh.hit(r, intersections);
-
-        //If there are no intersections call the no hit shader
-        if (intersections.empty()){
-            Point unit_direction = glm::normalize(r.getDirection());
-            float t = 0.5f*(unit_direction.y + 1.0);
-            return (1.0f-t) * Color(1.0) + t * Color{0.5, 0.7, 1.0};
-        }
-
-        ObjectIntersection intersection = intersections.front();
-        //TODO: Change to surfaceinteraction
-        //TODO: Maybe handle this and the bvh generation with a middleware class between the renderer and the hittable
-        for(ObjectIntersection i : intersections){
-            if(glm::length(r.getOrigin() - i.pv) < glm::length(r.getOrigin() - intersection.pv)){
-                intersection = i;
-            }
-        }
-
-        //Resolve the material color
-        std::shared_ptr<Material> material = intersection.node->getMaterial();
-        Ray ray;
-        Color incoming{0, 0, 0};
-        if(material->scatter(intersection, r, ray)){
-            incoming = trace_ray(ray, ray_depth + 1);
-        }
-        return material->color(intersection, r, incoming);
-    }
 
 private:
-
-    std::atomic<int> samples_completed = 0;
-    int samples_needed = 0;
-    int tile_number = 4;
+    std::unique_ptr<BackwardIntegrator> sampler;
+    int tile_number = 2;
     Camera camera;
     Node scene;
     BVH bvh;
     Configuration configuration;
+
+    std::atomic<int> samples_completed = 0;
+    int samples_needed = 0;
 };

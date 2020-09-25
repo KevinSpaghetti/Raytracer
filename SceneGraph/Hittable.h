@@ -12,7 +12,7 @@
 //logic intersection with an object
 class Hittable {
 public:
-    virtual void hit(const Ray& r, std::list<ObjectIntersection>& intersections) = 0;
+    virtual void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) = 0;
 
 
 };

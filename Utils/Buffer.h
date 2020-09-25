@@ -10,15 +10,22 @@
 template<class T>
 class Buffer {
 public:
-    Buffer(size_t width, size_t height) : width(width), height(height){
-        data.reserve(height);
+    Buffer(int width, int height) : width(width), height(height){
+        data = std::vector<std::vector<T>>(height);
         for (int i = 0; i < height; ++i) {
-            std::vector<T> row(width);
-            data.push_back(std::move(row));
+            data[i] = std::vector<T>(width);
         }
     }
 
-    T& operator()(int row, int column){
+    T& operator()(int row, int column) {
+        return at(row, column);
+    }
+
+    T& at(int row, int column) {
+        return data[row][column];
+    }
+
+    T at(int row, int column) const {
         return data[row][column];
     }
     T operator()(int row, int column) const {
@@ -37,8 +44,8 @@ private:
     std::vector<std::vector<T>> data;
     //In case we wanted to change the implementation using
     //something that does not remember the dimensions
-    size_t width;
-    size_t height;
+    int width;
+    int height;
 
 
 };

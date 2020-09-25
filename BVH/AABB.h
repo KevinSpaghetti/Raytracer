@@ -77,14 +77,14 @@ public:
             Normal nm = box_center - ip;
             ins.push_back({
                 ip, //Intersection point
-                glm::normalize(nm),
+                nm,
                 {0, 0, 0}
             });
             ip = r.getOrigin() + r.getDirection() * tmax;
             nm = box_center - ip;
             ins.push_back({
                 ip, //Intersection point
-                glm::normalize(nm),
+                nm,
                 {0, 0, 0}
             });
         }
