@@ -21,7 +21,9 @@ public:
     T& operator()(int row, int column){
         return data[row][column];
     }
-
+    T operator()(int row, int column) const {
+        return data[row][column];
+    }
     size_t getWidth() const {
         return width;
     }

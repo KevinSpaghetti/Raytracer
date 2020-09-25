@@ -41,7 +41,7 @@ add_executable(Test
         Mesh/TriangleMeshData.h
         BVH/BoundingBox.h
         Mesh/PlaneMesh.h
-        Materials/Lambertian.h RenderInfo.h Materials/Metal.h Materials/Dielectric.h)
+        Materials/Lambertian.h RenderInfo.h Materials/Metal.h Materials/Dielectric.h Output/WindowOutput.h)
 
-target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT} glfw vulkan)
 target_compile_options(Test PRIVATE -g)

@@ -18,6 +18,7 @@
 #include "Mesh/SphereMesh.h"
 #include "Materials/Metal.h"
 #include "Materials/Dielectric.h"
+#include "Output/WindowOutput.h"
 
 Node createScene(){
     Node root;
@@ -48,12 +49,14 @@ Node createScene(){
     */
 
     root.add(make_shared<Node>(terrain));
+    root.add(make_shared<Node>(sp2));
 
-
+    /*
     Node pot(geometry, material_metal);
     pot.translate({0.0, 1.0 , 0.0});
     pot.scale({0.3, 0.3, 0.3});
     root.add(make_shared<Node>(pot));
+    */
 
     return root;
 }
@@ -70,13 +73,13 @@ int main(){
 
     //Render
     Renderer::Configuration configuration{
-        .pixel_samples = 2,
+        .pixel_samples = 1,
         .max_ray_depth = 4,
         //TODO: Add backface culling options
         .backface_culling = true
     };
 
-    glm::vec3 lookfrom(0,4.0,4);
+    glm::vec3 lookfrom(0,0.0,1);
     glm::vec3 lookat(0,0,-1);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1;
@@ -90,7 +93,7 @@ int main(){
     Renderer renderer(configuration);
     std::cout << "Done \n";
     std::cout << "Rendering scene\n";
-    renderer.render(scene, color, camera);
+    //renderer.render(scene, color, camera);
     std::cout << "Done \n";
 
     clock_t stop = clock();
@@ -98,6 +101,9 @@ int main(){
     int minutes_elapsed = std::floor(seconds_elapsed) / 60;
     printf("Render done in: %d minutes and %.5f seconds\n", minutes_elapsed,  seconds_elapsed - minutes_elapsed * 60);
 
+    std::cout << "Opening Output Window \n";
+    auto wd_output = WindowOutput(800, 600, "Render", color);
+    std::cout << "Window Closed \n";
 
     std::cout << "Writing Buffer \n";
     std::shared_ptr<ColorBufferFormat> formatted_buffer;
