@@ -17,47 +17,48 @@
 #include "Materials/Lambertian.h"
 #include "Mesh/SphereMesh.h"
 #include "Materials/Metal.h"
-#include "Materials/Dielectric.h"
-#include "Output/WindowOutput.h"
+#include "Materials/DiffuseLight.h"
+
 
 Node createScene(){
     Node root;
 
-    //Create teapot
-    std::cout << "Loading teapot.obj \n";
-    std::shared_ptr<TriangleMesh> geometry = std::make_shared<TriangleMesh>(OBJLoader().load("teapot.obj"));
-    geometry->buildAccelerationStructure();
-    std::cout << "Done \n";
-    std::cout << "Loading Texture \n";
-    ImageTexture txt = ImageTextureLoader().load("image.png");
-    std::cout << "Done";
+    auto red   = make_shared<Lambertian>(Color(.65, .05, .05));
+    auto white = make_shared<Lambertian>(Color(.73, .73, .73));
+    auto green = make_shared<Lambertian>(Color(.12, .45, .15));
+    auto light = make_shared<DiffuseLight>(Color(1, 1, 1), 2.0f);
 
-    auto material_lambert = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-    auto material_metal = make_shared<Metal>(Color(0.8, 0.8, 0.8));
-    auto material_dielectric = make_shared<Dielectric>(0.01);
+    auto left = std::make_shared<PlaneMesh>(Point{-5, 0, 0},
+                                            Normal{1, 0, 0});
+    auto right = std::make_shared<PlaneMesh>(Point{5, 0, 0},
+                                             Normal{-1, 0, 0});
+    auto bottom = std::make_shared<PlaneMesh>(Point{0, -5, 0},
+                                              Normal{0, 1, 0});
+    auto top = std::make_shared<PlaneMesh>(Point{0, 5, 0},
+                                           Normal{0, -1, 0});
+    auto bg = std::make_shared<PlaneMesh>(Point{0, 0, -5},
+                                          Normal{0, 0, 1});
 
-    Node terrain(make_shared<SphereMesh>(Point{0.0, -100.5, -1.0}, 100.0), material_lambert);
-    Node sp2(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_metal);
-    Node sp3(make_shared<SphereMesh>(Point{0.0,    0.0, -1.0},   0.5), material_lambert);
+    auto sp = std::make_shared<SphereMesh>(Point{0, 0, 0}, 2);
 
-    /*
-    sp2.translate({-0.5, 0.0, 0.0});
-    sp3.translate({ 0.5, 1.0, 0.0});
-    root.add(make_shared<Node>(sp2));
-    //sp3.rotate({0.0, 1.0, 0.0}, glm::degrees(45.0f));
-    root.add(make_shared<Node>(sp3));
-    */
+    auto nsphere = make_shared<Node>(sp, red);
+    auto nleft = make_shared<Node>(left, green);
+    auto nright = make_shared<Node>(right, red);
+    auto ntop = make_shared<Node>(top, light);
+    auto nbottom = make_shared<Node>(bottom, white);
+    auto nbg = make_shared<Node>(bg, white);
 
-    root.add(make_shared<Node>(terrain));
-    root.add(make_shared<Node>(sp2));
+    //TODO: Don't use normal for direction typedef a Direction type
 
-    /*
-    Node pot(geometry, material_metal);
-    pot.translate({0.0, 1.0 , 0.0});
-    pot.scale({0.3, 0.3, 0.3});
-    root.add(make_shared<Node>(pot));
-    */
+    auto box = std::make_shared<Node>();
+    box->add(nleft);
+    box->add(nright);
+    box->add(ntop);
+    box->add(nbottom);
+    box->add(nbg);
 
+    root.add(box);
+    root.add(nsphere);
     return root;
 }
 
@@ -73,14 +74,13 @@ int main(){
 
     //Render
     Renderer::Configuration configuration{
-        .pixel_samples = 1,
-        .max_ray_depth = 4,
-        //TODO: Add backface culling options
-        .backface_culling = true
+            .pixel_samples = 64,
+            .max_ray_depth = 100,
+            .backface_culling = false
     };
 
-    glm::vec3 lookfrom(0,0.0,1);
-    glm::vec3 lookat(0,0,-1);
+    glm::vec3 lookfrom(0,1,7);
+    glm::vec3 lookat(0,0,0);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1;
     float aspect_ratio = width / height;
@@ -93,7 +93,7 @@ int main(){
     Renderer renderer(configuration);
     std::cout << "Done \n";
     std::cout << "Rendering scene\n";
-    //renderer.render(scene, color, camera);
+    renderer.render(scene, color, camera);
     std::cout << "Done \n";
 
     clock_t stop = clock();
@@ -101,18 +101,13 @@ int main(){
     int minutes_elapsed = std::floor(seconds_elapsed) / 60;
     printf("Render done in: %d minutes and %.5f seconds\n", minutes_elapsed,  seconds_elapsed - minutes_elapsed * 60);
 
-    std::cout << "Opening Output Window \n";
-    auto wd_output = WindowOutput(800, 600, "Render", color);
-    std::cout << "Window Closed \n";
 
     std::cout << "Writing Buffer \n";
-    std::shared_ptr<ColorBufferFormat> formatted_buffer;
-    std::shared_ptr<RenderOutput> output;
 
     //Format the buffer for a ppm file format output
-    formatted_buffer = std::make_shared<ColorBufferFormatPPM>(color);
+    auto formatted_buffer = std::make_unique<ColorBufferFormatPPM>(color);
     //Create a render output on a file
-    output = std::make_shared<FileRenderOutput>("render.ppm");
+    auto output = std::make_unique<FileRenderOutput>("render.ppm");
     //Write the formatted output
     output->write(*formatted_buffer);
     std::cout << "Done \n" << std::endl;

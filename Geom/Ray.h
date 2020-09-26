@@ -24,8 +24,6 @@ public:
         return origin;
     }
     Normal getDirection() const {
-        assert(glm::length(direction) > 1-consts::epsilon);
-        assert(glm::length(direction) < 1+consts::epsilon);
         return direction;
     }
 

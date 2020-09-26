@@ -43,21 +43,21 @@ public:
         return AABB(min, -min);
     }
 
-    std::list<Intersection> intersect(const Ray& r) const override {
-        std::list<Intersection> ins;
-        float dt = glm::dot(r.getDirection(), normal);
-        if(abs(dt) > consts::epsilon){
-            Point sub = center - r.getOrigin();
-            float t = glm::dot(sub, normal) / dt;
-            Point ip = r.getOrigin() + r.getDirection() * t;
-            ins.push_back({
-                ip,
-                normal,
-                UV(0, 0, 0)
+    std::vector<Intersection> intersect(const Ray& r) const override {
+        std::vector<Intersection> intersections;
+        float t;
+        bool isFront;
+        if(intersections::ray_plane(r, center, normal, t, isFront)){
+            intersections.push_back({
+                    r.at(t),
+                    normal,
+                    {0, 0, 0}, //TODO: implement uvs
+                    isFront
             });
+            return intersections;
         }
 
-        return ins;
+        return intersections;
     }
 
     bool isHit(const Ray &r) const override {

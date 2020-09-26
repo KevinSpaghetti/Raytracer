@@ -29,48 +29,26 @@ private:
     //TODO: Remember the last BVH or Scene node hit and
     //      check that first
     //Iterative version is more extensible
-    Color trace(const Ray& start, int ray_depth) const {
+    Color trace(const Ray& r, int ray_depth) const {
 
-        Color sample_color{0, 0, 0};
-
-        std::stack<Ray> path;
-        std::stack<ObjectIntersection> interactions;
-        Ray r = start;
-        while(true){
-            if(ray_depth > configuration.max_ray_depth){
-                sample_color = maxRayDepthReached(r);
-                break;
-            }
-
-            //If there are no intersections call the no hit shader
-            ObjectIntersection intersection{};
-            if (!getClosestSceneIntersection(r, intersection)) {
-                sample_color = noIntersections(r);
-                break;
-            }
-
-            interactions.push(intersection);
-
-            //TODO: Pass a sampler to the material with the ability to trace rays
-            auto material = intersection.node->getMaterial();
-            Ray ray{};
-            if (material->scatter(intersection, r, ray)) {
-                path.push(r);
-                r = ray;
-            }else{
-                break;
-            }
-
-            ++ray_depth;
+        if(ray_depth > configuration.max_ray_depth){
+            return maxRayDepthReached(r);
         }
 
-        while(!path.empty()) {
-            auto material = interactions.top().node->getMaterial();
-            sample_color = material->color(interactions.top(), path.top(), sample_color);
-            path.pop();
-            interactions.pop();
+        //If there are no intersections call the no hit shader
+        ObjectIntersection intersection{};
+        if (!getClosestSceneIntersection(r, intersection)) {
+            return noIntersections(r);
         }
-        return sample_color;
+
+        //TODO: Pass a sampler to the material with the ability to trace rays
+        auto material = intersection.node->getMaterial();
+        Ray ray{};
+        Color incoming{0.0, 0.0, 0.0};
+        if (material->scatter(intersection, r, ray)) {
+            incoming = trace(ray, ++ray_depth);
+        }
+        return material->color(intersection, r, incoming);
     }
 
 protected:
@@ -114,6 +92,7 @@ protected:
     }
 
     Color noIntersections(const Ray& r) const {
+        return Color{0.0, 0.0, 0.0};
         Point unit_direction = r.getDirection();
         float t = 0.5f * (unit_direction.y + 1.0);
         return (1.0f - t) * Color(1.0) + t * Color{0.5, 0.7, 1.0};

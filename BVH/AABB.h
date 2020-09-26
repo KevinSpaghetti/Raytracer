@@ -14,7 +14,7 @@ public:
     //Default constructor is a bounding box which never gets hit
     //Better than -inf, +inf bounding box because we can start
     //with the empty bounding box then expand
-    AABB() : min({0,0,0}), max({0,0,0}) {}
+    AABB() : min(Point{+consts::infinity}), max(Point{-consts::infinity}) {}
     AABB(Point min, Point max) : min(min), max(max) {}
     //Create a bounding box which encloses all the points in the list
     AABB(const std::vector<Point>& points){
@@ -68,8 +68,8 @@ public:
         return max;
     }
 
-    std::list<Intersection> intersect(const Ray &r) const override {
-        std::list<Intersection> ins;
+    std::vector<Intersection> intersect(const Ray &r) const override {
+        std::vector<Intersection> ins;
         float tmin, tmax;
         if(getHitPoint(r, tmin, tmax)){
             Point ip = r.getOrigin() + r.getDirection() * tmin;

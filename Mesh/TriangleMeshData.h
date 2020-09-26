@@ -31,7 +31,7 @@ struct TriangleMeshData {
         float d;
         float u, v;
         bool isFrontFace;
-        if(intersections::intersect(r, v1, v2, v3, d, u, v, isFrontFace)){
+        if(intersections::ray_triangle(r, v1, v2, v3, d, u, v, isFrontFace)){
             //TODO: Check the normalization of all the directions
             //Interpolate the informations from all the vertices
             Vertex ip{0, 0, 0};
@@ -67,8 +67,6 @@ struct TriangleMeshData {
         }
         return false;
     }
-
-
 
     bool hasNormals() const {
         return !normals.empty();

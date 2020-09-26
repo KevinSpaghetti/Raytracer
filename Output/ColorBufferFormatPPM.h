@@ -23,7 +23,7 @@ public:
         for (int i = 0; i < buffer.getHeight(); ++i) {
             for (int j = 0; j < buffer.getWidth(); ++j) {
                 Color c = buffer(i, j);
-                Color g = glm::sqrt(c) * 255.0f;
+                Color g = glm::clamp(glm::sqrt(c) * 255.0f, Color(0), Color(255));
                 result << static_cast<int>(g.r) << " "
                        << static_cast<int>(g.g) << " "
                        << static_cast<int>(g.b) << "\n";

@@ -11,8 +11,8 @@ public:
 
     SphereMesh(glm::vec3 center, float radius) : center(center), radius(radius) {}
 
-    std::list<Intersection> intersect(const Ray& r) const override {
-        std::list<Intersection> intersections;
+    std::vector<Intersection> intersect(const Ray& r) const override {
+        std::vector<Intersection> intersections;
 
         glm::vec3 oc = r.getOrigin() - center;
         auto a = pow(glm::length(r.getDirection()), 2);

@@ -12,5 +12,5 @@
 //TODO: change to support choosing between backface culling options
 class IntersectTestable {
 public:
-    virtual std::list<Intersection> intersect(const Ray& r) const = 0;
+    virtual std::vector<Intersection> intersect(const Ray& r) const = 0;
 };

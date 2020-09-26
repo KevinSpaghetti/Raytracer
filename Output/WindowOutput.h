@@ -4,6 +4,8 @@
 
 #pragma once
 
+#ifndef WIN32
+
 #include "RenderOutput.h"
 #include "../Utils/Structs.h"
 
@@ -579,3 +581,5 @@ private:
     const std::vector<const char*> device_layers = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
     const std::vector<const char*> validation_layers = { "VK_LAYER_KHRONOS_validation" };
 };
+
+#endif

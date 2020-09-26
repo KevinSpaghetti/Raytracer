@@ -29,7 +29,7 @@ public:
         std::cout << "Done\n";
     }
 
-    std::list<Intersection> intersect(const Ray& r) const override {
+    std::vector<Intersection> intersect(const Ray& r) const override {
         return accelerator->intersect(r);
     }
 

@@ -15,8 +15,8 @@ public:
     ExhaustiveSearch(std::shared_ptr<TriangleMeshData> data) :
         data(data) {}
 
-    std::list<Intersection> intersect(const Ray& r) const override {
-        std::list<Intersection> ins;
+    std::vector<Intersection> intersect(const Ray& r) const override {
+        std::vector<Intersection> ins;
 
         std::for_each(data->triangles.begin(), data->triangles.end(), [&](Triangle t){
             Intersection i{};
