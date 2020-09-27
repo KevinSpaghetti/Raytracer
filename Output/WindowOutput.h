@@ -4,14 +4,14 @@
 
 #pragma once
 
-#ifndef WIN32
-
 #include "RenderOutput.h"
 #include "../Utils/Structs.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+#include <iostream>
+#include <fstream>
 
 class WindowOutput {
 public:
@@ -23,9 +23,6 @@ public:
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-        }
 
         VkApplicationInfo appinfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
         appinfo.pApplicationName = "Raytracer";
@@ -69,10 +66,10 @@ public:
         uint32_t queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(pdevice, &queueFamilyCount, nullptr);
 
-        std::vector<VkQueueFamilyProperties> queueprops;
+        std::vector<VkQueueFamilyProperties> queueprops(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(pdevice, &queueFamilyCount, queueprops.data());
 
-        uint32_t graphicsindex = 1;
+        uint32_t graphicsindex = 0;
         {
             int i = 0;
             std::cout << "Queues \n";
@@ -108,8 +105,8 @@ public:
             throw std::runtime_error("Logical device creation failed");
         }
 
-        VkQueue graphicsQueue;
-        vkGetDeviceQueue(device, graphicsindex, 0, &graphicsQueue);
+        vkGetDeviceQueue(device, graphicsindex, 0, &graphics);
+        //vkGetDeviceQueue(device, graphicsindex, 0, &present);
 
         if(glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS){
             throw std::runtime_error("Surface creation failed");
@@ -123,11 +120,10 @@ public:
         VkBool32 supported;
         vkGetPhysicalDeviceSurfaceSupportKHR(pdevice, graphicsindex, surface, &supported);
 
-
         VkSwapchainCreateInfoKHR createinfo{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
         createinfo.surface = surface;
         createinfo.minImageCount = 4;
-        createinfo.imageFormat = surfaceformats[0].format;
+        createinfo.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
         createinfo.imageColorSpace = surfaceformats[0].colorSpace;
         createinfo.imageExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
         createinfo.imageArrayLayers = 1;
@@ -141,7 +137,7 @@ public:
         createinfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
         createinfo.oldSwapchain = VK_NULL_HANDLE;
 
-        format = surfaceformats[0].format;
+        format = VK_FORMAT_B8G8R8A8_UNORM;
         extent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
 
         if(vkCreateSwapchainKHR(device, &createinfo, nullptr, &swapchain) != VK_SUCCESS){
@@ -271,10 +267,75 @@ public:
         colorBlending.blendConstants[2] = 0.0f; // Optional
         colorBlending.blendConstants[3] = 0.0f; // Optional
 
+        VkCommandPoolCreateInfo poolinfo{};
+        poolinfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolinfo.queueFamilyIndex = graphicsindex;
+        poolinfo.flags = 0;
+
+        if(vkCreateCommandPool(device, &poolinfo, nullptr, &commandpool) != VK_SUCCESS){
+            throw std::runtime_error("Failed to create command pool");
+        }
+
+        //Before creating the pipeline load and bind the image
+        loadImage(buffer);
+
+        //Create the descriptors to bind the image uniform
+        VkDescriptorSetLayoutBinding samplerLayoutBinding{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
+        samplerLayoutBinding.binding = 0;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+
+        VkDescriptorSetLayoutCreateInfo linfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+        linfo.bindingCount = 1;
+        linfo.pBindings = &samplerLayoutBinding;
+
+        vkCreateDescriptorSetLayout(device, &linfo, nullptr, &dsLayout); //TODO: delete
+
+        VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
+        poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSize.descriptorCount = static_cast<uint32_t>(swapchain_images.size());
+
+        VkDescriptorPoolCreateInfo poolInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+        poolInfo.poolSizeCount = 1;
+        poolInfo.pPoolSizes = &poolSize;
+        poolInfo.maxSets = static_cast<uint32_t>(swapchain_images.size());
+
+        vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
+
+        std::vector<VkDescriptorSetLayout> layouts(swapchain_images.size(), dsLayout);
+        VkDescriptorSetAllocateInfo dsallocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+        dsallocInfo.descriptorPool = descriptorPool;
+        dsallocInfo.descriptorSetCount = static_cast<uint32_t>(swapchain_images.size());
+        dsallocInfo.pSetLayouts = layouts.data();
+
+        descriptorSets.resize(swapchain_images.size());
+        vkAllocateDescriptorSets(device, &dsallocInfo, descriptorSets.data());
+
+        //Configure descriptor sets
+        for (int i = 0; i < swapchain_images.size(); ++i) {
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = imageView;
+            imageInfo.sampler = sampler;
+
+            VkWriteDescriptorSet descriptorWrite{};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = descriptorSets[i];
+            descriptorWrite.dstBinding = 0;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+        }
+
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 0; // Optional
-        pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+        pipelineLayoutInfo.setLayoutCount = 1; // Optional
+        pipelineLayoutInfo.pSetLayouts = &dsLayout; // Optional
         pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
         pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
@@ -283,7 +344,7 @@ public:
         }
 
         VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = format;
+        colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -301,12 +362,22 @@ public:
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorAttachmentRef;
 
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassInfo.attachmentCount = 1;
         renderPassInfo.pAttachments = &colorAttachment;
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
 
         if(vkCreateRenderPass(device, &renderPassInfo, nullptr, &render_pass) != VK_SUCCESS){
             throw std::runtime_error("Failed render pass creation");
@@ -353,17 +424,8 @@ public:
 
         }
 
-        VkCommandPoolCreateInfo poolinfo{};
-        poolinfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolinfo.queueFamilyIndex = graphicsindex;
-        poolinfo.flags = 0;
-
-        if(vkCreateCommandPool(device, &poolinfo, nullptr, &commandpool) != VK_SUCCESS){
-            throw std::runtime_error("Failed to create command pool");
-        }
-
         commandbuffers.resize(swapchainbuffers.size());
-        VkCommandBufferAllocateInfo allocInfo{};
+        VkCommandBufferAllocateInfo allocInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
         allocInfo.commandPool = commandpool;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = (uint32_t) commandbuffers.size();
@@ -383,30 +445,79 @@ public:
                 throw std::runtime_error("failed to begin recording command buffer!");
             }
 
-            VkRenderPassBeginInfo renderpassbegin{};
-            renderpassbegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderpassbegin.renderPass = render_pass;
-            renderpassbegin.framebuffer = swapchainbuffers[i];
-            renderpassbegin.renderArea.offset = {0, 0};
-            renderpassbegin.renderArea.extent = extent;
+            VkRenderPassBeginInfo renderpassbegininfo{};
+            renderpassbegininfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            renderpassbegininfo.renderPass = render_pass;
+            renderpassbegininfo.framebuffer = swapchainbuffers[i];
+            renderpassbegininfo.renderArea.offset = {0, 0};
+            renderpassbegininfo.renderArea.extent = extent;
 
             VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 0.0f};
-            renderpassbegin.clearValueCount = 1;
-            renderpassbegin.pClearValues = &clearColor;
+            renderpassbegininfo.clearValueCount = 1;
+            renderpassbegininfo.pClearValues = &clearColor;
 
-            vkCmdBeginRenderPass(commandbuffers[i], &renderpassbegin, VK_SUBPASS_CONTENTS_INLINE);
+            vkCmdBeginRenderPass(commandbuffers[i], &renderpassbegininfo, VK_SUBPASS_CONTENTS_INLINE);
             vkCmdBindPipeline(commandbuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-            vkCmdDraw(commandbuffers[i], 3, 1, 0, 0);
+
+            vkCmdBindDescriptorSets(commandbuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
+
+            vkCmdDraw(commandbuffers[i], 6, 1, 0, 0);
             vkCmdEndRenderPass(commandbuffers[i]);
             if(vkEndCommandBuffer(commandbuffers[i]) != VK_SUCCESS){
                 throw std::runtime_error("failed to end recording command buffer!");
             }
         }
 
-
         //Draw frame
+        VkSemaphoreCreateInfo semInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+        vkCreateSemaphore(device, &semInfo, nullptr, &imageAvailableSemaphore);
+        vkCreateSemaphore(device, &semInfo, nullptr, &renderFinishedSemaphore);
 
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+            drawFrame();
+            vkQueueWaitIdle(graphics);
+        }
+        vkDeviceWaitIdle(device);
+        close();
     };
+
+    void drawFrame(){
+
+        uint32_t image_index;
+        vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &image_index);
+        //image_index is the index of the image in swapchain_images array
+
+        //Submit the command buffer
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+        VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandbuffers[image_index]; //Get command buffer corresponding to the image framebuffer
+        VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+
+        vkQueueSubmit(graphics, 1, &submitInfo, VK_NULL_HANDLE);
+
+        VkPresentInfoKHR presentInfo{VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
+
+        VkSwapchainKHR swapchains[] = {swapchain};
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapchains;
+        presentInfo.pImageIndices = &image_index;
+        presentInfo.pResults = nullptr;
+
+        vkQueuePresentKHR(graphics, &presentInfo);
+
+    }
 
     std::vector<char> readShaderFile(const std::string& filename) const {
         //Load fragment shader
@@ -424,56 +535,59 @@ public:
     }
 
     //Change window contents
-    void write(const Buffer<Color>& buffer) const {
+    void write(const Buffer<Color>& buffer) {}
 
-        uint32_t image_size = buffer.getWidth() * buffer.getHeight() * 3;
+    void loadImage(const Buffer<Color>& buffer){
+
+        uint32_t image_size = buffer.getWidth() * buffer.getHeight() * 4 * sizeof(float);
 
         //Allocate memory on the gpu and transfer the buffer data
         VkBuffer staging_buffer;
         VkDeviceMemory staging_buffer_memory;
 
+        //Create the buffer in a host coherent memory (used only for staging, later transfer to GPU local memory)
         createBuffer(image_size,
                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                      staging_buffer,
                      staging_buffer_memory);
 
-        void* data;
         auto *pixels = new unsigned char[image_size];
         int index = 0;
         for (int i = 0; i < buffer.getHeight(); ++i) {
             for (int j = 0; j < buffer.getWidth(); ++j) {
-                pixels[index] = static_cast<uint8_t>(buffer(i, j).r * 255.0f);
-                pixels[index] = static_cast<uint8_t>(buffer(i, j).g * 255.0f);
-                pixels[index] = static_cast<uint8_t>(buffer(i, j).b * 255.0f);
-                ++index;
+                pixels[index++] = static_cast<uint8_t>(round(glm::sqrt(buffer(i, j).b) * 255.0f));
+                pixels[index++] = static_cast<uint8_t>(round(glm::sqrt(buffer(i, j).g) * 255.0f));
+                pixels[index++] = static_cast<uint8_t>(round(glm::sqrt(buffer(i, j).r) * 255.0f));
+                pixels[index++] = 255;
             }
         }
+        //TODO: Gamma correct in the shader
+
+        void* data;
         vkMapMemory(device, staging_buffer_memory, 0, image_size, 0, &data); //Points data to the first byte of mapped memory
-        memcpy(data, pixels, static_cast<uint32_t>(image_size));
+        memcpy(data, pixels, static_cast<size_t>(image_size));
         vkUnmapMemory(device, staging_buffer_memory);
         delete[](pixels);
 
         //Setup the image object
-        VkImage texture;
-        VkDeviceMemory texture_memory;
         VkImageCreateInfo iminfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
         iminfo.imageType = VK_IMAGE_TYPE_2D;
         iminfo.extent = {static_cast<uint32_t>(buffer.getWidth()), static_cast<uint32_t>(buffer.getHeight()), 1};
         iminfo.mipLevels = 1;
         iminfo.arrayLayers = 1;
-        iminfo.format = VK_FORMAT_R8G8B8_SRGB;
+        iminfo.format = VK_FORMAT_B8G8R8A8_UNORM;
         iminfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         iminfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         iminfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT; //We want to transfer to and sample the texture
         iminfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         iminfo.samples = VK_SAMPLE_COUNT_1_BIT;
         iminfo.flags = 0;
-
         if(vkCreateImage(device, &iminfo, nullptr, &texture) != VK_SUCCESS){
             throw std::runtime_error("Failed to creat texture");
         }
 
+        //Allocate the memory for the image on the GPU
         VkMemoryRequirements memReqs;
         vkGetImageMemoryRequirements(device, texture, &memReqs);
 
@@ -481,13 +595,169 @@ public:
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memReqs.size;
         allocInfo.memoryTypeIndex = findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
         if(vkAllocateMemory(device, &allocInfo, nullptr, &texture_memory) != VK_SUCCESS){
             throw std::runtime_error("Failed to allocate texture memory");
         }
 
+        //Bind the memory to that image
         vkBindImageMemory(device, texture, texture_memory, 0);
 
-        //Now we need to fill the texture_memory on the GPU with the data that we have in staging_buffer_memory that is in a Host coherent area
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = texture;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+
+        //Transition the image to a layout optimal for sampling
+        VkCommandBufferAllocateInfo allocateInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
+        allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocateInfo.commandPool = commandpool;
+        allocateInfo.commandBufferCount = 1;
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer);
+        VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+        //Setup the layout transition to prepare the memory to be a copy destination
+        VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = texture;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseMipLevel = 0;
+        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+        barrier.srcAccessMask = 0; //Operations that can happen before the barrier
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; //Operations that must wait on the barrier
+
+        vkCmdPipelineBarrier(commandBuffer,
+                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                             0,
+                             0, nullptr,
+                             0, nullptr,
+                             1, &barrier);
+
+        vkEndCommandBuffer(commandBuffer);
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        vkQueueSubmit(graphics, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(graphics);
+        vkFreeCommandBuffers(device, commandpool, 1, &commandBuffer);
+
+        //Copy the image memory from the staging memory to the gpu local memory
+        VkCommandBuffer copycommandBuffer;
+        vkAllocateCommandBuffers(device, &allocateInfo, &copycommandBuffer);
+        VkCommandBufferBeginInfo beginInfocp{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+        beginInfocp.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(copycommandBuffer, &beginInfocp);
+        VkBufferImageCopy region{};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+        region.imageOffset = {0, 0, 0};
+        region.imageExtent = {
+                static_cast<uint32_t>(buffer.getWidth()),
+                static_cast<uint32_t>(buffer.getHeight()),
+                1
+        };
+        //Copy the memory from the slow host coherent staging memory to the fast device local memory
+        //staging_buffer is a buffer that is bound to the staging_buffer_memory
+        vkCmdCopyBufferToImage(copycommandBuffer, staging_buffer, texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+        vkEndCommandBuffer(copycommandBuffer);
+        VkSubmitInfo cpsubmitInfo{};
+        cpsubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        cpsubmitInfo.commandBufferCount = 1;
+        cpsubmitInfo.pCommandBuffers = &copycommandBuffer;
+        vkQueueSubmit(graphics, 1, &cpsubmitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(graphics);
+        vkFreeCommandBuffers(device, commandpool, 1, &copycommandBuffer);
+
+
+        //Transition the memory from destination of copy to shader read
+        //Setup the layout transition to prepare the memory to be a copy destination
+        VkImageMemoryBarrier barriertr{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+        barriertr.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barriertr.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barriertr.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barriertr.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barriertr.image = texture;
+        barriertr.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barriertr.subresourceRange.baseMipLevel = 0;
+        barriertr.subresourceRange.levelCount = 1;
+        barriertr.subresourceRange.baseArrayLayer = 0;
+        barriertr.subresourceRange.layerCount = 1;
+        barriertr.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barriertr.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        VkCommandBuffer layoutcommandBuffer;
+        vkAllocateCommandBuffers(device, &allocateInfo, &layoutcommandBuffer);
+        VkCommandBufferBeginInfo beginInfolt{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+        beginInfolt.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(layoutcommandBuffer, &beginInfolt);
+        vkCmdPipelineBarrier(layoutcommandBuffer,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                             0,
+                             0, nullptr,
+                             0, nullptr,
+                             1, &barriertr);
+        vkEndCommandBuffer(layoutcommandBuffer);
+        VkSubmitInfo submitInfolt{};
+        submitInfolt.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfolt.commandBufferCount = 1;
+        submitInfolt.pCommandBuffers = &layoutcommandBuffer;
+        vkQueueSubmit(graphics, 1, &submitInfolt, VK_NULL_HANDLE);
+        vkQueueWaitIdle(graphics);
+        vkFreeCommandBuffers(device, commandpool, 1, &layoutcommandBuffer);
+
+
+        VkSamplerCreateInfo samplerInfo{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+
+        samplerInfo.anisotropyEnable = VK_FALSE;
+        samplerInfo.maxAnisotropy = 0.0f;
+        samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE; //We want [0, 1] coord ranges
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_EQUAL;
+
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+
+        vkCreateSampler(device, &samplerInfo, nullptr, &sampler);
+
+        vkDestroyBuffer(device, staging_buffer, nullptr);
+        vkFreeMemory(device, staging_buffer_memory, nullptr);
 
     }
 
@@ -530,7 +800,15 @@ public:
         throw std::runtime_error("failed to find suitable memory type!");
     }
 
-    ~WindowOutput(){
+    void close(){
+        vkFreeMemory(device, texture_memory, nullptr);
+        vkDestroyDescriptorSetLayout(device, dsLayout, nullptr);
+        vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+        vkDestroySampler(device, sampler, nullptr);
+        vkDestroyImageView(device, imageView, nullptr);
+        vkDestroyImage(device, texture, nullptr);
+        vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+        vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
         vkDestroyCommandPool(device, commandpool, nullptr);
         for(auto framebuffer : swapchainbuffers){
             vkDestroyFramebuffer(device, framebuffer, nullptr);
@@ -554,6 +832,9 @@ public:
         glfwTerminate();
     }
 
+    ~WindowOutput(){
+    }
+
 private:
     //GLFW window management variables
     GLFWwindow* window = nullptr;
@@ -575,11 +856,21 @@ private:
     std::vector<VkFramebuffer> swapchainbuffers;
     VkCommandPool commandpool;
     std::vector<VkCommandBuffer> commandbuffers;
+    VkDeviceMemory texture_memory;
+    VkQueue graphics;
+    VkImage texture;
+    VkImageView imageView;
+    VkSampler sampler;
+
+    VkDescriptorPool descriptorPool;
+    std::vector<VkDescriptorSet> descriptorSets;
+    VkDescriptorSetLayout dsLayout;
+
+    VkSemaphore imageAvailableSemaphore;
+    VkSemaphore renderFinishedSemaphore;
 
 
     const std::vector<const char*> extension_layers = { "VK_LAYER_KHRONOS_validation" };
     const std::vector<const char*> device_layers = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
     const std::vector<const char*> validation_layers = { "VK_LAYER_KHRONOS_validation" };
 };
-
-#endif

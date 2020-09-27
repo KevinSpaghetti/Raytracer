@@ -41,7 +41,15 @@ add_executable(Test
         Mesh/TriangleMeshData.h
         BVH/BoundingBox.h
         Mesh/PlaneMesh.h
-        Materials/Lambertian.h RenderInfo.h Materials/Metal.h Output/WindowOutput.h Materials/DiffuseLight.h Mesh/FlatRectMesh.h)
+        Materials/Lambertian.h
+        RenderInfo.h
+        Materials/Metal.h
+        Output/WindowOutput.h
+        Materials/DiffuseLight.h
+        Mesh/FlatRectMesh.h)
 
-target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})
+execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
+execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)
+
+target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT} glfw vulkan)
 target_compile_options(Test PRIVATE -g)

@@ -97,7 +97,7 @@ private:
 
     //TODO: Refactor tile code to return an iterator that iterates
     //over every pixel
-    void trace_tile(Tile<Color>& tile){
+    void trace_tile(Tile<Color> tile){
         glm::vec2 tile_dimensions = tile.getDimensions();
         for (int i = 0; i < tile_dimensions.y; ++i) {
             for (int j = 0; j < tile_dimensions.x; ++j) {
@@ -120,7 +120,7 @@ private:
 
 private:
     std::unique_ptr<BackwardIntegrator> sampler;
-    int tile_number = 2;
+    int tile_number = 4;
     Camera camera;
     Node scene;
     BVH bvh;

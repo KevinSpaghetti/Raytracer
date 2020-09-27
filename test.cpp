@@ -18,9 +18,10 @@
 #include "Mesh/SphereMesh.h"
 #include "Materials/Metal.h"
 #include "Materials/DiffuseLight.h"
+#include "Output/WindowOutput.h"
 
 
-Node createScene(){
+Node createCornellBox(){
     Node root;
 
     auto red   = make_shared<Lambertian>(Color(.65, .05, .05));
@@ -62,6 +63,25 @@ Node createScene(){
     return root;
 }
 
+Node createSpheres(){
+    Node root;
+
+    auto grey  = make_shared<Lambertian>(Color(.6,   .6,  .6));
+    auto red   = make_shared<Lambertian>(Color(.65, .05, .05));
+    auto white = make_shared<Lambertian>(Color(.73, .73, .73));
+    auto green = make_shared<Lambertian>(Color(.12, .45, .15));
+
+    auto smallg = std::make_shared<SphereMesh>(Point{0,0 ,-1}, 0.5f);
+    auto small = std::make_shared<Node>(smallg, grey);
+    auto bigg = std::make_shared<SphereMesh>(Point{0,-100.5 ,-1}, 100.0f);
+    auto big = std::make_shared<Node>(bigg, grey);
+
+    root.add(small);
+    root.add(big);
+
+    return root;
+}
+
 int main(){
 
     std::cout << "Creating buffer \n";
@@ -70,16 +90,16 @@ int main(){
     Buffer<Color> color(width, height);
     std::cout << "Done \n";
 
-    Node scene = createScene();
+    Node scene = createSpheres();
 
     //Render
     Renderer::Configuration configuration{
-            .pixel_samples = 64,
-            .max_ray_depth = 100,
+            .pixel_samples = 50,
+            .max_ray_depth = 10,
             .backface_culling = false
     };
 
-    glm::vec3 lookfrom(0,1,7);
+    glm::vec3 lookfrom(0,0,1);
     glm::vec3 lookat(0,0,0);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1;
@@ -101,9 +121,9 @@ int main(){
     int minutes_elapsed = std::floor(seconds_elapsed) / 60;
     printf("Render done in: %d minutes and %.5f seconds\n", minutes_elapsed,  seconds_elapsed - minutes_elapsed * 60);
 
+    auto wo = WindowOutput(width,height, "Render", color);
 
     std::cout << "Writing Buffer \n";
-
     //Format the buffer for a ppm file format output
     auto formatted_buffer = std::make_unique<ColorBufferFormatPPM>(color);
     //Create a render output on a file
