@@ -20,13 +20,14 @@ public:
 
         //Start with the mesh bounding box
         box = root.getSurroundingBox();
-        for (shared_ptr<Node> child : root.getChildren()) {
+        for (const auto& child : root.getChildren()) {
             BVH sub_box(*child); //Build the BVH subtree based on the child node n
-            children.push_back(make_shared<BVH>(sub_box)); //Add the BVH subtree
+            children.push_back(std::make_shared<BVH>(sub_box)); //Add the BVH subtree
             //Grow the node bounding box to contain all the children
             //bounding boxes
             box = AABB(box, sub_box.getSurroundingBox());
         }
+
     }
 
 
@@ -51,7 +52,7 @@ public:
         }
 
         //2. the children bounding boxes
-        for (auto child : children){
+        for (const auto& child : children){
             child->hit(t, intersections);
         }
 
@@ -73,5 +74,5 @@ private:
 protected:
     AABB box;
     Node node;
-    std::vector<shared_ptr<BVH>> children;
+    std::vector<std::shared_ptr<BVH>> children;
 };

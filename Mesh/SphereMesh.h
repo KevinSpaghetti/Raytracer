@@ -27,27 +27,41 @@ public:
             if (temp < r.getTmax() && temp > r.getTmin()) {
                 Point ip = r.at(temp);
                 Point n = (ip - center) / radius;
-                float u = atan2f(n.x, n.z) / (2*pi) + 0.5;
+                float u = atan2f(n.x, n.z) / (2*consts::pi) + 0.5f;
                 float v = n.y * 0.5f + 0.5f;
+                bool isFront;
+                if(glm::dot(r.getDirection(), n) < 0){
+                    isFront = true;
+                }else{
+                    isFront = false;
+                    n = -n;
+                };
                 intersections.push_back(Intersection{
                     ip,
                     n,
                     //Invert the y axis
                     UV{u, 1.0f - v, 0},
-                    true
+                    isFront
                 });
             }
             temp = (-half_b + root) / a;
             if (temp < r.getTmax() && temp > r.getTmin()) {
                 Point ip = r.at(temp);
                 Point n = (ip - center) / radius;
-                float u = atan2f(n.x, n.z) / (2*pi) + 0.5;
+                float u = atan2f(n.x, n.z) / (2*consts::pi) + 0.5f;
                 float v = n.y * 0.5f + 0.5f;
+                bool isFront;
+                if(glm::dot(r.getDirection(), n) < 0){
+                    isFront = true;
+                }else{
+                    isFront = false;
+                    n = -n;
+                };
                 intersections.push_back(Intersection{
                         ip,
                         n,
                         UV{u, 1.0f - v, 0},
-                        false
+                        isFront
                 });
             }
         }

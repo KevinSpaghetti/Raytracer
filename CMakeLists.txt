@@ -46,7 +46,7 @@ add_executable(Test
         Materials/Metal.h
         Output/WindowOutput.h
         Materials/DiffuseLight.h
-        Mesh/FlatRectMesh.h)
+        Mesh/FlatRectMesh.h Materials/Dielectric.h)
 
 execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
 execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)

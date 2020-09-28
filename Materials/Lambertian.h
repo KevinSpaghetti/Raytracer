@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Material.h"
-#include "../consts.h"
 #include "../Geom/Ray.h"
 #include "../Utils/Random.h"
 
@@ -14,7 +13,7 @@ public:
     Lambertian(const Color a) : albedo(a) {}
 
     bool scatter(const Intersection &i, const Ray& incoming, Ray& outgoing) const override {
-        Point direction = randomized::vector::unit_vector();
+        Point direction = i.pn + randomized::vector::unit_vector();
         outgoing =  Ray(i.pv, direction);
         return true;
     }

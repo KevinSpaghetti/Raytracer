@@ -11,5 +11,7 @@ layout(binding = 0) uniform sampler2D image;
 
 void main() {
     vec2 normFragCoord = ((gl_FragCoord.xy) + vec2(1.0, 1.0));
-    outColor = texture(image, normFragCoord.xy / vec2(width, height));
+    vec4 imgcolor = texture(image, normFragCoord.xy / vec2(width, height));
+
+    outColor = vec4(pow(imgcolor.xyz, vec3(1/2.2)), 1.0);
 }

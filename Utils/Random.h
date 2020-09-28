@@ -33,14 +33,14 @@ namespace randomized {
             }
         }
         static glm::vec3 unit_vector() {
-            auto a = random_double(0, 2*pi);
-            auto z = random_double(-1, 1);
+            auto a = randomized::scalar::random(0, 2*consts::pi);
+            auto z = randomized::scalar::random(-1, 1);
             auto r = sqrt(1 - z*z);
-            return vec3(r*cos(a), r*sin(a), z);
+            return glm::vec3{r*cos(a), r*sin(a), z};
         }
         static glm::vec3 in_unit_disk(){
             while (true) {
-                auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
+                auto p = glm::vec3{randomized::scalar::random(-1,1), randomized::scalar::random(-1,1), 0};
                 if (pow(glm::length(p),2) >= 1) continue;
                 return p;
             }

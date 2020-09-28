@@ -18,22 +18,22 @@ public:
     AABB getSurroundingBox() const override {
         //The bounding box along an axis is 0(near 0 after adding thickness) only if the normal
         //is parallel to the axis
-        if(glm::dot(normal, consts::up) > 1.0f - consts::epsilon){
+        if(glm::dot(normal, consts::up) > 1.0f - 0.001){
             Point min{-consts::infinity,
-                      0 - consts::epsilon,
+                      0 - 0.001,
                       -consts::infinity};
             return AABB(min, -min);
         }
-        if(glm::dot(normal, consts::left) > 1.0f - consts::epsilon){
-            Point min{0 - consts::epsilon,
+        if(glm::dot(normal, consts::left) > 1.0f - 0.001){
+            Point min{0 - 0.001,
                       -consts::infinity,
                       -consts::infinity};
             return AABB(min, -min);
         }
-        if(glm::dot(normal, consts::forward) > 1.0f - consts::epsilon){
+        if(glm::dot(normal, consts::forward) > 1.0f - 0.001){
             Point min{-consts::infinity,
                       -consts::infinity,
-                      0 - consts::epsilon};
+                      0 - 0.001};
             return AABB(min, -min);
         }
 
@@ -60,11 +60,9 @@ public:
         return intersections;
     }
 
+    //Do not respect tmin with bboxes collision
     bool isHit(const Ray &r) const override {
         float dt = glm::dot(r.getDirection(), normal);
-        if(dt > consts::epsilon){
-            return true;
-        }
         return false;
     }
 

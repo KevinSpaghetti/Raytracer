@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../consts.h"
 #include "Random.h"
 
 using glm::vec3;
@@ -10,8 +9,8 @@ public:
     Camera(){}
 
     Camera(vec3 lookfrom, vec3 lookat, vec3 up, float vfov, float aspect_ratio, float aperture, float focus_dist) {
-        auto theta = degrees_to_radians(vfov);
-        auto h = tan(theta/2);
+        auto theta = glm::radians(vfov);
+        auto h = tanf(theta/2.0f);
         float viewport_height = 10.0f * h;
         float viewport_width = aspect_ratio * viewport_height;
 

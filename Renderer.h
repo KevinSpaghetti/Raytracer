@@ -17,22 +17,26 @@
 #include "Utils/Random.h"
 #include "BVH/BVH.h"
 #include "Geom/ObjectIntersection.h"
-#include "Sampler/BackwardIntegrator.h"
-#include "Sampler/NormalDebugIntegrator.h"
+#include "Integrators/BackwardIntegrator.h"
+#include "Integrators/NormalDebugIntegrator.h"
 
+template<typename Integrator = BackwardIntegrator>
 class Renderer {
-public:
+private:
     //Renderer configuration
     struct Configuration {
         int pixel_samples = 1;
         int max_ray_depth = 1;
         bool backface_culling = false;
-    };
+    } configuration;
+public:
 
-    Renderer(Configuration configuration) : configuration(configuration) {}
+    Renderer() : configuration() {}
 
     //For now render only color
     void render(Node graph, Buffer<Color>& target, Camera cam){
+        stage = Started;
+
         //Divide the buffer in tiles
         //int tile_number = 1;
         std::vector<Tile<Color>> tiles = Tile<Color>::split(target, tile_number);
@@ -65,7 +69,7 @@ public:
         std::vector<std::thread> workers;
 
         //Create the sampler
-        sampler = std::make_unique<BackwardIntegrator>(&bvh, BackwardIntegrator::SceneSamplerConfiguration{
+        sampler = std::make_unique<Integrator>(&bvh, BackwardIntegrator::SceneSamplerConfiguration{
                 configuration.max_ray_depth,
                 configuration.backface_culling
         });
@@ -80,6 +84,20 @@ public:
             worker.join();
         }
 
+        stage = Ended;
+
+    }
+
+    int& pixelsamples(){
+        return configuration.pixel_samples;
+    }
+
+    int& maxraydepth(){
+        return configuration.max_ray_depth;
+    }
+
+    bool& backfaceculling(){
+        return configuration.backface_culling;
     }
 
 private:
@@ -95,15 +113,13 @@ private:
         std::cout << "\n";
     }
 
-    //TODO: Refactor tile code to return an iterator that iterates
-    //over every pixel
     void trace_tile(Tile<Color> tile){
         glm::vec2 tile_dimensions = tile.getDimensions();
         for (int i = 0; i < tile_dimensions.y; ++i) {
             for (int j = 0; j < tile_dimensions.x; ++j) {
                 Color pixel_color{0, 0, 0};
                 for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
-                    glm::vec2 random_2D = {randomized::scalar::random(), randomized::scalar::random()};
+                    glm::vec2 random_2D = {randomized::scalar::random(-1, 1), randomized::scalar::random(-1, 1)};
                     glm::vec2 sample_coords = (tile.getStart() + glm::vec2{j, i} + random_2D) / (tile.getDimensions() * static_cast<float>(tile_number));
 
                     Ray r = camera.get(sample_coords.x, sample_coords.y);
@@ -119,12 +135,15 @@ private:
 
 
 private:
+    enum RenderStage {
+        Started,
+        Ended
+    } stage;
     std::unique_ptr<BackwardIntegrator> sampler;
-    int tile_number = 4;
+    int tile_number = 1;
     Camera camera;
     Node scene;
     BVH bvh;
-    Configuration configuration;
 
     std::atomic<int> samples_completed = 0;
     int samples_needed = 0;

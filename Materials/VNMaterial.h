@@ -6,7 +6,6 @@
 
 #include "Material.h"
 #include "../Geom/Ray.h"
-#include "../consts.h"
 
 class VNMaterial : public Material {
 public:

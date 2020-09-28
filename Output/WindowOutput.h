@@ -556,13 +556,12 @@ public:
         int index = 0;
         for (int i = 0; i < buffer.getHeight(); ++i) {
             for (int j = 0; j < buffer.getWidth(); ++j) {
-                pixels[index++] = static_cast<uint8_t>(round(glm::sqrt(buffer(i, j).b) * 255.0f));
-                pixels[index++] = static_cast<uint8_t>(round(glm::sqrt(buffer(i, j).g) * 255.0f));
-                pixels[index++] = static_cast<uint8_t>(round(glm::sqrt(buffer(i, j).r) * 255.0f));
+                pixels[index++] = static_cast<uint8_t>(buffer(i, j).b * 255.0f);
+                pixels[index++] = static_cast<uint8_t>(buffer(i, j).g * 255.0f);
+                pixels[index++] = static_cast<uint8_t>(buffer(i, j).r * 255.0f);
                 pixels[index++] = 255;
             }
         }
-        //TODO: Gamma correct in the shader
 
         void* data;
         vkMapMemory(device, staging_buffer_memory, 0, image_size, 0, &data); //Points data to the first byte of mapped memory

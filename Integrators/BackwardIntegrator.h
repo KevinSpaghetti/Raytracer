@@ -88,13 +88,13 @@ protected:
     }
 
     Color maxRayDepthReached(const Ray& r) const {
-        return Color{0.0, 0, 0};
+        return Color{1.0, 0.0, 0.0};
     }
 
     Color noIntersections(const Ray& r) const {
         //return Color{0.0, 0.0, 0.0};
         Point unit_direction = r.getDirection();
-        float t = 0.5f * (unit_direction.y + 1.0);
+        float t = 0.5f * (unit_direction.y + 1.0f);
         return (1.0f - t) * Color(1.0) + t * Color{0.5, 0.7, 1.0};
     }
 
