@@ -30,7 +30,9 @@ public:
     }
 
 
-    void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) override {
+    std::vector<ObjectIntersection> hit(const Ray& r) override {
+        std::vector<ObjectIntersection> intersections;
+
         //Transform the ray from world space to object space
         Ray t(node.pointToObjectSpace(r.getOrigin()),
               node.directionToObjectSpace(r.getDirection()));
@@ -38,7 +40,7 @@ public:
         //Check the ray hit against this node bounding box
         if(!box.isHit(t)) {
             //If the ray does not hit the hitbox it will not hit the object
-            return;
+            return intersections;
         }
 
         //If the ray hits the bounding box check
@@ -52,7 +54,8 @@ public:
 
         //2. the children bounding boxes
         for (const auto& child : children){
-            child->hit(t, intersections);
+            std::vector<ObjectIntersection> child_i = child->hit(t);
+            intersections.insert(intersections.end(), child_i.begin(), child_i.end());
         }
 
         //Transform the intersections from object space back to world space
@@ -60,6 +63,7 @@ public:
             it.pv = node.pointToWorldSpace(it.pv);
             it.pn = node.directionToWorldSpace(it.pn);
         }
+        return intersections;
     }
 
 private:

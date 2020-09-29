@@ -84,7 +84,7 @@ protected:
     }
 
     void getAllSceneIntersections(const Ray& r, std::vector<ObjectIntersection>& intersections) const {
-        scene->hit(r, intersections);
+        intersections = scene->hit(r);
     }
 
     Color maxRayDepthReached(const Ray& r) const {

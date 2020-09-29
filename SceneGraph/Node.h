@@ -22,7 +22,8 @@ public:
          const std::shared_ptr<Material> material) : mesh(mesh), material(material)
     {}
 
-    void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) override {
+    std::vector<ObjectIntersection> hit(const Ray& r) override {
+        std::vector<ObjectIntersection> intersections;
 
         //Apply the transform to the ray
         //The recursion applies the transforms without the need to explicitly multiply the matrices
@@ -37,8 +38,9 @@ public:
             });
         }
 
-        for (auto n : children) {
-            n->hit(t, intersections);
+        for (auto child : children) {
+            std::vector<ObjectIntersection> child_i = child->hit(t);
+            intersections.insert(intersections.end(), child_i.begin(), child_i.end());
         }
 
         //Transform the intersection in world space coords
@@ -46,6 +48,7 @@ public:
             it.pv = pointToWorldSpace(it.pv);
             it.pn = directionToWorldSpace(it.pn);
         }
+        return intersections;
     }
 
     //Return the bounding box surrounding this node

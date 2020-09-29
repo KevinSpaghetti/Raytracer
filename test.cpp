@@ -48,7 +48,7 @@ Node createCornellBox(){
     auto sp1 = std::make_shared<SphereMesh>(Point{-30, -30, 20}, 10);
     auto sp2 = std::make_shared<SphereMesh>(Point{30, -30, 10}, 15);
 
-    auto nsphere = std::make_shared<Node>(sp, dielectric);
+    //auto nsphere = std::make_shared<Node>(sp, dielectric);
     auto nsphere1 = std::make_shared<Node>(sp1, metal);
     auto nsphere2 = std::make_shared<Node>(sp2, green);
 
@@ -58,8 +58,6 @@ Node createCornellBox(){
     auto nbottom = std::make_shared<Node>(bottom, white);
     auto nbg = std::make_shared<Node>(bg, white);
 
-    //TODO: Don't use normal for direction typedef a Direction type
-
     auto box = std::make_shared<Node>();
     auto spheres = std::make_shared<Node>();
     box->add(nleft);
@@ -68,9 +66,11 @@ Node createCornellBox(){
     box->add(nbottom);
     box->add(nbg);
 
-    spheres->add(nsphere);
+    //spheres->add(nsphere);
     spheres->add(nsphere1);
     spheres->add(nsphere2);
+
+    spheres->translate({0, 40, -10});
 
     root.add(box);
     root.add(spheres);
@@ -122,8 +122,8 @@ int main(){
     std::cout << "Creating Renderer\n";
 
     Renderer renderer;
-    renderer.pixelsamples() = 20;
-    renderer.maxraydepth() = 20;
+    renderer.pixelsamples() = 10;
+    renderer.maxraydepth() = 10;
     renderer.backfaceculling() = false;
 
     std::cout << "Done \n";
