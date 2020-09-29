@@ -18,8 +18,8 @@ public:
     AABB(Point min, Point max) : min(min), max(max) {}
     //Create a bounding box which encloses all the points in the list
     AABB(const std::vector<Point>& points){
-        min = {0, 0, 0};
-        max = {0, 0, 0};
+        min = {+consts::infinity, +consts::infinity, +consts::infinity};
+        max = -max;
         //Grow the bounding box
         for(Vertex v : points){
             for (int i = 0; i < 3; ++i) {
@@ -49,15 +49,39 @@ public:
     }
     //One intersection enters and one exits the cube
     bool getHitPoint(const Ray& r, float& tmin, float& tmax) const {
-        Point mn = glm::min((min - r.getOrigin())/r.getDirection(), (max - r.getOrigin())/r.getDirection());
-        Point mx = glm::max((min - r.getOrigin())/r.getDirection(), (max - r.getOrigin())/r.getDirection());
+        tmin = (min.x - r.getOrigin().x) / r.getDirection().x;
+        tmax = (max.x - r.getOrigin().x) / r.getDirection().x;
 
-        for (int a = 0; a < 3; a++) {
-            tmin = fmax(mn[a], r.getTmin());
-            tmax = fmin(mx[a], r.getTmax());
-            if (tmax <= tmin)
-                return false; //No intersections
-        }
+        if (tmin > tmax) std::swap(tmin, tmax);
+
+        float tymin = (min.y - r.getOrigin().y) / r.getDirection().y;
+        float tymax = (max.y - r.getOrigin().y) / r.getDirection().y;
+
+        if (tymin > tymax) std::swap(tymin, tymax);
+
+        if ((tmin > tymax) || (tymin > tmax))
+            return false;
+
+        if (tymin > tmin)
+            tmin = tymin;
+
+        if (tymax < tmax)
+            tmax = tymax;
+
+        float tzmin = (min.z - r.getOrigin().z) / r.getDirection().z;
+        float tzmax = (max.z - r.getOrigin().z) / r.getDirection().z;
+
+        if (tzmin > tzmax) std::swap(tzmin, tzmax);
+
+        if ((tmin > tzmax) || (tzmin > tmax))
+            return false;
+
+        if (tzmin > tmin)
+            tmin = tzmin;
+
+        if (tzmax < tmax)
+            tmax = tzmax;
+
         return true;
     }
 

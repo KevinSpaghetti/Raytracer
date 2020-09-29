@@ -88,7 +88,6 @@ Node createSpheres(){
     auto metal = std::make_shared<Metal>(Color(.12, .45, .15), 0.0);
     auto dielectric = std::make_shared<Dielectric>(1.5);
 
-
     auto smallg = std::make_shared<SphereMesh>(Point{0,0 ,-1}, 0.5f);
     auto small = std::make_shared<Node>(smallg, dielectric);
     auto bigg = std::make_shared<SphereMesh>(Point{0,-100.5 ,-1}, 100.0f);
@@ -123,8 +122,8 @@ int main(){
     std::cout << "Creating Renderer\n";
 
     Renderer renderer;
-    renderer.pixelsamples() = 1;
-    renderer.maxraydepth() = 5;
+    renderer.pixelsamples() = 20;
+    renderer.maxraydepth() = 20;
     renderer.backfaceculling() = false;
 
     std::cout << "Done \n";

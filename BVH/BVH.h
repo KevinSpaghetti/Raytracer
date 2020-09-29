@@ -21,13 +21,12 @@ public:
         //Start with the mesh bounding box
         box = root.getSurroundingBox();
         for (const auto& child : root.getChildren()) {
-            BVH sub_box(*child); //Build the BVH subtree based on the child node n
-            children.push_back(std::make_shared<BVH>(sub_box)); //Add the BVH subtree
+            auto sub_box{std::make_shared<BVH>(*child)}; //Build the BVH subtree based on the child node n
             //Grow the node bounding box to contain all the children
             //bounding boxes
-            box = AABB(box, sub_box.getSurroundingBox());
+            box = AABB(box, sub_box->getSurroundingBox());
+            children.push_back(sub_box); //Add the BVH subtree
         }
-
     }
 
 

@@ -140,7 +140,7 @@ private:
         Ended
     } stage;
     std::unique_ptr<BackwardIntegrator> sampler;
-    int tile_number = 1;
+    int tile_number = 4;
     Camera camera;
     Node scene;
     BVH bvh;
