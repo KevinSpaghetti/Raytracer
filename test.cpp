@@ -20,6 +20,9 @@
 #include "Materials/DiffuseLight.h"
 #include "Output/WindowOutput.h"
 #include "Materials/Dielectric.h"
+#include "Materials/SolidColorMaterial.h"
+#include "Materials/SkyMaterial.h"
+#include "RenderInfo.h"
 
 
 Node createCornellBox(){
@@ -125,6 +128,15 @@ int main(){
     renderer.pixelsamples() = 10;
     renderer.maxraydepth() = 10;
     renderer.backfaceculling() = false;
+    renderer.max_depth_material() = std::make_shared<SolidColorMaterial>(Color{0.0, 0.0, 0.0});
+    renderer.no_hit_material() = std::make_shared<SkyMaterial>();
+    renderer.set_updater([](const Renderer::RenderInfo& info) -> void {
+        if(info.stage != Renderer::Ended){
+            std::cout << "\rCompleted " << info.samples_completed << "/" << info.samples_needed << "" << std::flush;
+        }else{
+            std::cout << "\n";
+        }
+    });
 
     std::cout << "Done \n";
     std::cout << "Rendering scene\n";

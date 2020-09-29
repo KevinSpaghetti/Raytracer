@@ -291,7 +291,7 @@ public:
         linfo.bindingCount = 1;
         linfo.pBindings = &samplerLayoutBinding;
 
-        vkCreateDescriptorSetLayout(device, &linfo, nullptr, &dsLayout); //TODO: delete
+        vkCreateDescriptorSetLayout(device, &linfo, nullptr, &dsLayout);
 
         VkDescriptorPoolSize poolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
         poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;

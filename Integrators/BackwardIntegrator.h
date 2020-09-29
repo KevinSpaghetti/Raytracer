@@ -15,19 +15,18 @@ public:
     struct SceneSamplerConfiguration{
         int max_ray_depth = 1;
         bool backface_culling = false;
+        std::shared_ptr<Material> max_depth_material;
+        std::shared_ptr<Material> no_hit_material;
     };
 
     BackwardIntegrator() = delete;
-    BackwardIntegrator(Hittable* scene, const SceneSamplerConfiguration configuration) : scene(scene), configuration(configuration) {}
+    BackwardIntegrator(Hittable* scene, const SceneSamplerConfiguration& configuration) : scene(scene), configuration(configuration) {}
 
     Color sample(const Ray &r) const override {
         return trace(r, 0);
     }
 
 private:
-    //TODO: Add no hit materials and max depth reached materials
-    //TODO: Remember the last BVH or Scene node hit and
-    //      check that first
     //Iterative version is more extensible
     Color trace(const Ray& r, int ray_depth) const {
 
@@ -88,14 +87,11 @@ protected:
     }
 
     Color maxRayDepthReached(const Ray& r) const {
-        return Color{1.0, 0.0, 0.0};
+        return configuration.max_depth_material->color({}, r, {0.0, 0.0, 0.0});
     }
 
     Color noIntersections(const Ray& r) const {
-        //return Color{0.0, 0.0, 0.0};
-        Point unit_direction = r.getDirection();
-        float t = 0.5f * (unit_direction.y + 1.0f);
-        return (1.0f - t) * Color(1.0) + t * Color{0.5, 0.7, 1.0};
+        return configuration.no_hit_material->color({}, r, {0.0, 0.0, 0.0});
     }
 
 private:

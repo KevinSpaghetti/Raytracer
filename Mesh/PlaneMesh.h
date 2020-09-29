@@ -14,7 +14,7 @@ public:
 
     PlaneMesh(Point center, Point normal) : center(center), normal(normal) {};
 
-    //TODO: Maybe cache the bounding boxes
+
     AABB getSurroundingBox() const override {
         //The bounding box along an axis is 0(near 0 after adding thickness) only if the normal
         //is parallel to the axis

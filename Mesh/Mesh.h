@@ -11,7 +11,7 @@
 #include "../BVH/AABB.h"
 
 //Represents an empty mesh
-//TODO: Meshes can have internal datastructures built
+// Meshes can have internal datastructures built
 //     on construction to speed up the intersection tests
 class Mesh : public IntersectTestable, public Boxable<AABB> {
 public:

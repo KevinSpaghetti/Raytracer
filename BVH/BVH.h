@@ -9,7 +9,7 @@
 #include "../Geom/ObjectIntersection.h"
 
 //TODO: Build a better bvh by not using the ordering in the scene graph
-//TODO: every bvh node is responsible for holding its bounding box and checking the intersection when necessary
+//every bvh node is responsible for holding its bounding box and checking the intersection when necessary
 //Not boxable since extern agents do not need to know that the class relies on bounding boxes
 class BVH : public Hittable {
 public:
