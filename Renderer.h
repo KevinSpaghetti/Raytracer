@@ -118,7 +118,8 @@ public:
         return configuration.no_hit_material;
     }
 
-    void set_updater(std::function<void(const RenderInfo&)> function){
+    void set_updater(std::chrono::milliseconds interval, std::function<void(const RenderInfo&)> function){
+        interval = interval;
         updater = function;
     }
 
@@ -129,7 +130,7 @@ private:
         //We need to sleep the thread for seconds, or else the fast reads on samples_completed
         //block the other threads (the workers) from executing and we have a slow down
         while(render_info.stage != Ended){
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(interval);
             //Call function
             updater(render_info);
         }
@@ -163,5 +164,7 @@ private:
     Node scene;
     BVH bvh;
 
+
+    std::chrono::milliseconds interval{1000};
     std::function<void(const RenderInfo&)> updater;
 };

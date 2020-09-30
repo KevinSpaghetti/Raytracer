@@ -22,11 +22,20 @@
 #include "Materials/Dielectric.h"
 #include "Materials/SolidColorMaterial.h"
 #include "Materials/SkyMaterial.h"
-#include "RenderInfo.h"
+#include "Mesh/AARectMesh.h"
 
+using namespace std::chrono_literals; //For second, milliseconds etc
 
 Node createCornellBox(){
     Node root;
+
+    auto checker_txt = std::make_shared<CheckerTexture>(Color{0, 0, 0}, Color{0.8, 0.8, 0.8});
+    auto pot_geom = std::make_shared<TriangleMesh>(OBJLoader().load("teapot.obj"));
+    pot_geom->buildAccelerationStructure();
+
+    auto check_mtl = std::make_shared<TXTMaterial>();
+    check_mtl->addTexture("albedo", checker_txt);
+    auto pot = std::make_shared<Node>(pot_geom, check_mtl);
 
     auto red   = std::make_shared<Lambertian>(Color(.65, .05, .05));
     auto white = std::make_shared<Lambertian>(Color(.73, .73, .73));
@@ -50,11 +59,19 @@ Node createCornellBox(){
     auto sp = std::make_shared<SphereMesh>(Point{0, 0, 0}, 20);
     auto sp1 = std::make_shared<SphereMesh>(Point{-30, -30, 20}, 10);
     auto sp2 = std::make_shared<SphereMesh>(Point{30, -30, 10}, 15);
+    auto sp3 = std::make_shared<SphereMesh>(Point{25, -25, 30}, -10);
+
+    auto light_plane = std::make_shared<AARectMesh>(AARectMesh::Axis::XZ, Point{0, 0, 0}, 70.0f, 70.0f);
 
     //auto nsphere = std::make_shared<Node>(sp, dielectric);
     auto nsphere1 = std::make_shared<Node>(sp1, metal);
-    auto nsphere2 = std::make_shared<Node>(sp2, green);
+    auto image_txt = std::make_shared<ImageTexture>(ImageTextureLoader().load("image.png"));
+    auto image_mtl = std::make_shared<TXTMaterial>();
+    image_mtl->addTexture("albedo", image_txt);
+    auto nsphere2 = std::make_shared<Node>(sp2, image_mtl);
+    auto nsphere3 = std::make_shared<Node>(sp3, dielectric);
 
+    auto nlight = std::make_shared<Node>(light_plane, light);
     auto nleft = std::make_shared<Node>(left, green);
     auto nright = std::make_shared<Node>(right, red);
     auto ntop = std::make_shared<Node>(top, light);
@@ -69,15 +86,20 @@ Node createCornellBox(){
     box->add(nbottom);
     box->add(nbg);
 
-    //spheres->add(nsphere);
+
     spheres->add(nsphere1);
     spheres->add(nsphere2);
 
     spheres->translate({0, 40, -10});
+    nlight->translate({0, 49.999, 0});
+    pot->scale({1.5, 1.5, 1.5});
+    pot->translate({0, -40, -10});
 
     root.add(box);
     root.add(spheres);
-
+    //root.add(nsphere3);
+    //root.add(nlight);
+    root.add(pot);
     return root;
 }
 
@@ -108,7 +130,6 @@ int main(){
     const int width = 500;
     const int height = 500;
     Buffer<Color> color(width, height);
-    std::cout << "Done \n";
 
     Node scene = createCornellBox();
 
@@ -125,12 +146,13 @@ int main(){
     std::cout << "Creating Renderer\n";
 
     Renderer renderer;
-    renderer.pixelsamples() = 1;
-    renderer.maxraydepth() = 5;
+    renderer.pixelsamples() = 10;
+    renderer.maxraydepth() = 10;
     renderer.backfaceculling() = false;
     renderer.max_depth_material() = std::make_shared<SolidColorMaterial>(Color{0.0, 0.0, 0.0});
     renderer.no_hit_material() = std::make_shared<SkyMaterial>();
-    renderer.set_updater([](const Renderer::RenderInfo& info) -> void {
+    //Updater gets called every n milliseconds
+    renderer.set_updater(1000ms,[](const Renderer::RenderInfo& info) -> void {
         if(info.stage != Renderer::Ended){
             std::cout << "\rCompleted " << info.samples_completed << "/" << info.samples_needed << "" << std::flush;
         }else{
@@ -148,7 +170,7 @@ int main(){
     int minutes_elapsed = std::floor(seconds_elapsed) / 60;
     printf("Render done in: %d minutes and %.5f seconds\n", minutes_elapsed,  seconds_elapsed - minutes_elapsed * 60);
 
-    //auto wo = WindowOutput(width,height, "Render", color);
+    auto wo = WindowOutput(width,height, "Render", color);
 
     std::cout << "Writing Buffer \n";
     //Format the buffer for a ppm file format output

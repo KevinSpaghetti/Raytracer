@@ -27,6 +27,12 @@ public:
             outgoing = Ray(i.pv, reflected);
             return true;
         }
+        double reflect_prob = schlick(cos_theta, etai);
+        if (randomized::scalar::random() < reflect_prob){
+            Point reflected = glm::reflect(incoming.getDirection(), i.pn);
+            outgoing = Ray(i.pv, reflected);
+            return true;
+        }
 
         Point refracted = glm::refract(incoming.getDirection(), i.pn ,etai);
         outgoing = Ray(i.pv, refracted);
