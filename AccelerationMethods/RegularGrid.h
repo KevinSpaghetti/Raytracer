@@ -81,10 +81,9 @@ public:
     }
 
     //Maybe return a list of intersections
-    std::vector<Intersection> intersect(const Ray& r) const {
-        std::vector<Intersection> ins;
+    void intersect(const Ray& r, std::vector<Intersection>& intersections) const {
         if(!box.isHit(r)){
-            return ins;
+            return ;
         }
 
         Point cell; //The cell in which we are
@@ -123,7 +122,7 @@ public:
             for (TriangleInfo t : cells[id].overlaps) {
                 Intersection i;
                 if(data->test(r, t.tri, i)){
-                    ins.emplace_back(i);
+                    intersections.emplace_back(i);
                 }
             }
             int k = ((nextCrossingT[0] < nextCrossingT[1]) << 2) +
@@ -143,7 +142,6 @@ public:
             nextCrossingT[axis] += deltaT[axis];
         }
 
-        return ins;
     }
 
     AABB getSurroundingBox() const override {

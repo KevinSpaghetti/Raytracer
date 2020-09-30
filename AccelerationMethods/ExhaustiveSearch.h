@@ -15,17 +15,15 @@ public:
     ExhaustiveSearch(std::shared_ptr<TriangleMeshData> data) :
         data(data) {}
 
-    std::vector<Intersection> intersect(const Ray& r) const override {
-        std::vector<Intersection> ins;
+    void intersect(const Ray& r, std::vector<Intersection>& intersections) const override {
 
         std::for_each(data->triangles.begin(), data->triangles.end(), [&](Triangle t){
             Intersection i{};
             if(data->test(r, t, i)){
-                ins.emplace_back(i);
+                intersections.emplace_back(i);
             }
         });
 
-        return ins;
     }
 
 private:

@@ -16,8 +16,7 @@ public:
             width(width),
             height(height) {}
 
-    std::vector<Intersection> intersect(const Ray &r) const override {
-        std::vector<Intersection> intersections;
+    void intersect(const Ray &r, std::vector<Intersection>& intersections) const override {
         float t;
         bool isFront;
         if(intersections::ray_plane(r, center, normal, t, isFront)){
@@ -27,10 +26,7 @@ public:
                     {0, 0, 0}, //TODO: implement uvs
                     isFront
             });
-            return intersections;
         }
-
-        return intersections;
     }
 
     AABB getSurroundingBox() const override {

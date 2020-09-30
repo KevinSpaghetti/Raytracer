@@ -11,5 +11,5 @@
 //The intersection test must respect the ray min and max bounds
 class IntersectTestable {
 public:
-    virtual std::vector<Intersection> intersect(const Ray& r) const = 0;
+    virtual void intersect(const Ray& r, std::vector<Intersection>& intersections) const = 0;
 };

@@ -18,8 +18,8 @@ public:
     Mesh() {}
 
     //To allow the empty mesh
-    virtual std::vector<Intersection> intersect(const Ray& r) const override {
-        return std::vector<Intersection>();
+    virtual void intersect(const Ray& r, std::vector<Intersection>& intersections) const override {
+        return ;
     }
 
     AABB getSurroundingBox() const override {

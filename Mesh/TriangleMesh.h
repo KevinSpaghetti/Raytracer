@@ -29,8 +29,8 @@ public:
         std::cout << "Done\n";
     }
 
-    std::vector<Intersection> intersect(const Ray& r) const override {
-        return accelerator->intersect(r);
+    void intersect(const Ray& r, std::vector<Intersection>& intersections) const override {
+        return accelerator->intersect(r, intersections);
     }
 
     AABB buildSurroundingBox(){

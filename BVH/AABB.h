@@ -92,27 +92,26 @@ public:
         return max;
     }
 
-    std::vector<Intersection> intersect(const Ray &r) const override {
-        std::vector<Intersection> ins;
+    void intersect(const Ray &r, std::vector<Intersection>& intersections) const override {
+
         float tmin, tmax;
         if(getHitPoint(r, tmin, tmax)){
             Point ip = r.getOrigin() + r.getDirection() * tmin;
             Point box_center = max + ((max - min)/2.0f);
             Normal nm = box_center - ip;
-            ins.push_back({
+            intersections.push_back({
                 ip, //Intersection point
                 nm,
                 {0, 0, 0}
             });
             ip = r.getOrigin() + r.getDirection() * tmax;
             nm = box_center - ip;
-            ins.push_back({
+            intersections.push_back({
                 ip, //Intersection point
                 nm,
                 {0, 0, 0}
             });
         }
-        return ins;
     }
 
 private:

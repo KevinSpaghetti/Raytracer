@@ -125,8 +125,8 @@ int main(){
     std::cout << "Creating Renderer\n";
 
     Renderer renderer;
-    renderer.pixelsamples() = 10;
-    renderer.maxraydepth() = 10;
+    renderer.pixelsamples() = 1;
+    renderer.maxraydepth() = 5;
     renderer.backfaceculling() = false;
     renderer.max_depth_material() = std::make_shared<SolidColorMaterial>(Color{0.0, 0.0, 0.0});
     renderer.no_hit_material() = std::make_shared<SkyMaterial>();
@@ -148,7 +148,7 @@ int main(){
     int minutes_elapsed = std::floor(seconds_elapsed) / 60;
     printf("Render done in: %d minutes and %.5f seconds\n", minutes_elapsed,  seconds_elapsed - minutes_elapsed * 60);
 
-    auto wo = WindowOutput(width,height, "Render", color);
+    //auto wo = WindowOutput(width,height, "Render", color);
 
     std::cout << "Writing Buffer \n";
     //Format the buffer for a ppm file format output

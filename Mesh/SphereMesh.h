@@ -11,8 +11,7 @@ public:
 
     SphereMesh(glm::vec3 center, float radius) : center(center), radius(radius) {}
 
-    std::vector<Intersection> intersect(const Ray& r) const override {
-        std::vector<Intersection> intersections;
+    void intersect(const Ray& r, std::vector<Intersection>& intersections) const override {
 
         glm::vec3 oc = r.getOrigin() - center;
         auto a = pow(glm::length(r.getDirection()), 2);
@@ -65,7 +64,6 @@ public:
                 });
             }
         }
-        return intersections;
     }
 
     AABB getSurroundingBox() const override {
