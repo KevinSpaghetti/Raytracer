@@ -146,8 +146,8 @@ int main(){
     std::cout << "Creating Renderer\n";
 
     Renderer renderer;
-    renderer.pixelsamples() = 10;
-    renderer.maxraydepth() = 10;
+    renderer.pixelsamples() = 20;
+    renderer.maxraydepth() = 20;
     renderer.backfaceculling() = false;
     renderer.max_depth_material() = std::make_shared<SolidColorMaterial>(Color{0.0, 0.0, 0.0});
     renderer.no_hit_material() = std::make_shared<SkyMaterial>();
