@@ -45,6 +45,25 @@ namespace randomized {
                 return p;
             }
         }
+        static glm::vec3 in_unit_hemisphere(const glm::vec3 normal){
+            glm::vec3 p = in_unit_sphere();
+            if (glm::dot(normal, p) > 0.0f) {
+                return glm::normalize(p);
+            }else{
+                return glm::normalize(-p);
+            }
+        }
+        static glm::vec3 in_cosine_direction() {
+            float r1 = randomized::scalar::random();
+            float r2 = randomized::scalar::random();
+            auto z = sqrtf(1.0f-r2);
+
+            auto phi = 2*consts::pi*r1;
+            auto x = cos(phi)*sqrt(r2);
+            auto y = sin(phi)*sqrt(r2);
+
+            return glm::vec3(x, y, z);
+        }
     }
 
 };

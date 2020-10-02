@@ -12,9 +12,9 @@ public:
     Ray() :
         origin({0, 0, 0}),
         direction({0, 0, 0}), //Dangerous when normalizing causes crash
-        tmin(0.0001),
+        tmin(0.001),
         tmax(+consts::infinity) {}
-    Ray(const Point origin, const Normal direction, const float tmin = 0.0001, const float tmax = consts::infinity) :
+    Ray(const Point origin, const Normal direction, const float tmin = 0.001, const float tmax = consts::infinity) :
         origin(origin),
         direction(glm::normalize(direction)),
         tmin(tmin),

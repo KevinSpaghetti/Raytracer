@@ -5,22 +5,24 @@
 #pragma once
 
 #include <stack>
+#include <utility>
 
 #include "Integrator.h"
 #include "../SceneGraph/Hittable.h"
+#include "../Utils/PDF.h"
+
 
 class BackwardIntegrator : public Integrator {
 public:
 
     struct SceneSamplerConfiguration{
         int max_ray_depth = 1;
-        bool backface_culling = false;
         std::shared_ptr<Material> max_depth_material;
         std::shared_ptr<Material> no_hit_material;
     };
 
     BackwardIntegrator() = delete;
-    BackwardIntegrator(Hittable* scene, const SceneSamplerConfiguration& configuration) : scene(scene), configuration(configuration) {}
+    BackwardIntegrator(Hittable* scene, SceneSamplerConfiguration  configuration) : scene(scene), configuration(std::move(configuration)) {}
 
     Color sample(const Ray &r) const override {
         return trace(r, 0);
@@ -40,12 +42,18 @@ private:
             return noIntersections(r);
         }
 
-        //TODO: Pass a sampler to the material with the ability to trace rays
         auto material = intersection.node->getMaterial();
         Ray ray{};
         Color incoming{0.0, 0.0, 0.0};
+
         if (material->scatter(intersection, r, ray)) {
-            incoming = trace(ray, ++ray_depth);
+            CosinePDF cs(intersection.pn);
+            ObjectPDF ob(nodelight, intersection.pv);
+            MixPDF pdf(&cs, &ob);
+            Normal dir = pdf.generate();
+            float val = pdf.value(dir);
+            incoming = trace(Ray(intersection.pv, dir), ++ray_depth);
+            return material->color(intersection, r, incoming, val);
         }
         return material->color(intersection, r, incoming);
     }
@@ -70,15 +78,9 @@ protected:
             return false;
         }
 
-        //If backface culling is activated pick the intersection
-        //with a face that is front
-        if (configuration.backface_culling) {
-            //TODO: implement ;
-        } else {
-            intersection = *std::min_element(intersections.begin(), intersections.end(), [&r](auto i1, auto i2){
-                return glm::length(r.getOrigin() - i1.pv) < glm::length(r.getOrigin() - i2.pv);
-            });
-        }
+        intersection = *std::min_element(intersections.begin(), intersections.end(), [&r](auto i1, auto i2){
+            return glm::length(r.getOrigin() - i1.pv) < glm::length(r.getOrigin() - i2.pv);
+        });
         return true;
     }
 
@@ -89,7 +91,6 @@ protected:
     Color maxRayDepthReached(const Ray& r) const {
         return configuration.max_depth_material->color({}, r, {0.0, 0.0, 0.0});
     }
-
     Color noIntersections(const Ray& r) const {
         return configuration.no_hit_material->color({}, r, {0.0, 0.0, 0.0});
     }

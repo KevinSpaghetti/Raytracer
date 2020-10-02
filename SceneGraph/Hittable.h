@@ -12,5 +12,12 @@
 //logic intersection with an object
 class Hittable {
 public:
-    virtual void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) = 0;
+    virtual void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) const = 0;
+
+    virtual double pdf(const Point& origin, const Normal& direction) const {
+        return 0.0f; //The ray will never get scattered in any direction
+    }
+    virtual Point random(const Point& o) const {
+        return Point{1, 0, 0};
+    }
 };

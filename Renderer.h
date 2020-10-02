@@ -27,7 +27,6 @@ private:
     struct Configuration {
         int pixel_samples = 1;
         int max_ray_depth = 1;
-        bool backface_culling = false;
         std::shared_ptr<Material> max_ray_depth_material;
         std::shared_ptr<Material> no_hit_material;
     } configuration;
@@ -82,7 +81,6 @@ public:
         //Create the sampler
         sampler = std::make_unique<BackwardIntegrator>(&bvh, BackwardIntegrator::SceneSamplerConfiguration{
                 configuration.max_ray_depth,
-                configuration.backface_culling,
                 configuration.max_ray_depth_material,
                 configuration.no_hit_material
         });
@@ -107,9 +105,6 @@ public:
     }
     int& maxraydepth(){
         return configuration.max_ray_depth;
-    }
-    bool& backfaceculling(){
-        return configuration.backface_culling;
     }
     std::shared_ptr<Material>& max_depth_material(){
         return configuration.max_ray_depth_material;
@@ -145,10 +140,13 @@ private:
                 for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
                     glm::vec2 random_2D = {randomized::scalar::random(-1, 1), randomized::scalar::random(-1, 1)};
                     glm::vec2 sample_coords = (tile.getStart() + glm::vec2{j, i} + random_2D) / (tile.getDimensions() * static_cast<float>(tile_number));
-
                     Ray r = camera.get(sample_coords.x, sample_coords.y);
 
-                    pixel_color += sampler->sample(r);
+                    Color sample_color = sampler->sample(r);
+
+                    //Avoid bad samples killing the pixels
+                    for (int k = 0; k < 3; ++k) {if(sample_color[k] != sample_color[k]) sample_color[k] = 0.0f;}
+                    pixel_color += sample_color;
                 }
                 tile(i, j) = pixel_color / static_cast<float>(configuration.pixel_samples);
             }

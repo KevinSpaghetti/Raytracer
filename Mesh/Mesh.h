@@ -26,5 +26,12 @@ public:
         return AABB();
     }
 
+    virtual double pdf(const Point& origin, const Normal& direction) const {
+        return 0.0f; //The ray will never get scattered in any direction
+    }
+    virtual Point random(const Point& o) const {
+        return Point{1, 0, 0};
+    }
+
 };
 

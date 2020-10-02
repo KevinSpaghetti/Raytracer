@@ -14,7 +14,6 @@ public:
 
     PlaneMesh(Point center, Point normal) : center(center), normal(normal) {};
 
-
     AABB getSurroundingBox() const override {
         //The bounding box along an axis is 0(near 0 after adding thickness) only if the normal
         //is parallel to the axis
@@ -44,8 +43,8 @@ public:
     }
 
     void intersect(const Ray& r, std::vector<Intersection>& intersections) const override {
-        float t;
-        bool isFront;
+        float t = 0.0f;
+        bool isFront = true;
         if(intersections::ray_plane(r, center, normal, t, isFront)){
             intersections.push_back({
                     r.at(t),
@@ -58,8 +57,9 @@ public:
 
     //Do not respect tmin with bboxes collision
     bool isHit(const Ray &r) const override {
-        float dt = glm::dot(r.getDirection(), normal);
-        return false;
+        std::vector<Intersection> ins;
+        intersect(r, ins);
+        return ins.size() > 0;
     }
 
 public:

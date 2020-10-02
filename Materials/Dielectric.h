@@ -29,7 +29,7 @@ public:
         }
         double reflect_prob = schlick(cos_theta, etai);
         if (randomized::scalar::random() < reflect_prob){
-            Point reflected = glm::reflect(incoming.getDirection(), i.pn);
+            Point reflected = glm::reflect(incoming.getDirection(), glm::normalize(i.pn));
             outgoing = Ray(i.pv, reflected);
             return true;
         }

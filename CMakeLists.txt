@@ -46,10 +46,16 @@ add_executable(Test
         Materials/Metal.h
         Output/WindowOutput.h
         Materials/DiffuseLight.h
-        Mesh/AARectMesh.h Materials/Dielectric.h Materials/SolidColorMaterial.h Materials/SkyMaterial.h)
+        Mesh/AARectMesh.h
+        Materials/Dielectric.h
+        Materials/SolidColorMaterial.h
+        Materials/SkyMaterial.h
+        Geom/ONB.h
+        Utils/PDF.h)
 
 execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
 execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)
 
 target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT} glfw vulkan)
 target_compile_options(Test PRIVATE -g)
+target_compile_options(Test PRIVATE -O3)

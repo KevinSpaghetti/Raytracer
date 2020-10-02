@@ -22,9 +22,15 @@ public:
     //Override this function to implement effects or
     //to use the ray and intersection point in the blending process
     virtual Color color(const Intersection& i, const Ray& r, const Color& incoming) const = 0;
+    //Importance sampled version of color function
+    virtual Color color(const Intersection& i, const Ray& r, const Color& incoming, const float pdf) const {
+        return color(i, r, incoming);
+    }
 
+    virtual float sPDF(const Intersection& i, const Ray& r, const Ray& outgoing) const {
+        return 0.0;
+    }
 
-    //TODO: Add the possibility to add floats and vectors
     void addTexture(std::string key, std::shared_ptr<Texture> texture){
         textures.insert(std::pair<std::string, std::shared_ptr<Texture>>(key, texture));
     }

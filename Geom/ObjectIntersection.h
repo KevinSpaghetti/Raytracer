@@ -10,5 +10,5 @@ class Node;
 
 struct ObjectIntersection : Intersection {
     //The scene graph node that contains the hit object
-    Node* node;
+    const Node* node;
 };

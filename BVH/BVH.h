@@ -9,6 +9,8 @@
 #include "../Geom/ObjectIntersection.h"
 
 //TODO: Build a better bvh by not using the ordering in the scene graph
+//TODO: Fix rotations, it doesn't work with rotations in the scene because we cannot
+//      rotate the AABB
 //every bvh node is responsible for holding its bounding box and checking the intersection when necessary
 //Not boxable since extern agents do not need to know that the class relies on bounding boxes
 class BVH : public Hittable {
@@ -30,7 +32,7 @@ public:
     }
 
 
-    void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) override {
+    void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) const override {
 
         //Transform the ray from world space to object space
         Ray t(node.pointToObjectSpace(r.getOrigin()),

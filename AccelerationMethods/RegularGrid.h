@@ -80,7 +80,6 @@ public:
 
     }
 
-    //Maybe return a list of intersections
     void intersect(const Ray& r, std::vector<Intersection>& intersections) const {
         if(!box.isHit(r)){
             return ;

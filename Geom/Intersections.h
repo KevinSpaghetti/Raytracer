@@ -45,17 +45,17 @@ namespace intersections {
     //Ray Plane
     bool ray_plane(const Ray& r, const Point& center, const Normal& normal, float& t, bool& isFrontFace){
         //check if the point lies on the plane
-        float denom = glm::dot(-normal, r.getDirection());
-        if(denom > 1e-6){
+        float angle = glm::dot(normal, r.getDirection());
+        if(abs(angle) > consts::epsilon){
             Point p0l0 = center - r.getOrigin();
-            t = glm::dot(p0l0, -normal) / denom;
+            t = glm::dot(p0l0, normal) / angle;
             if (t < 0) {
                 return false;
             }
             if (t < r.getTmin() || t > r.getTmax()){
                 return false;
             }
-            if(glm::dot(r.getDirection(), -normal) > 0){
+            if(glm::dot(r.getDirection(), normal) > 0){
                 isFrontFace = false;
             }else{
                 isFrontFace = true;
