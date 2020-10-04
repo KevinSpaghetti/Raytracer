@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include "Boxable.h"
-#include "../SceneGraph/IntersectTestable.h"
+#include "../Geom/IntersectTestable.h"
 #include "BoundingBox.h"
 
 class AABB : public BoundingBox, public IntersectTestable {

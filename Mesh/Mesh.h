@@ -7,7 +7,7 @@
 #include <vector>
 #include "../Utils/Structs.h"
 #include "../Geom/Intersection.h"
-#include "../SceneGraph/IntersectTestable.h"
+#include "../Geom/IntersectTestable.h"
 #include "../BVH/AABB.h"
 
 //Represents an empty mesh
@@ -24,13 +24,6 @@ public:
 
     AABB getSurroundingBox() const override {
         return AABB();
-    }
-
-    virtual double pdf(const Point& origin, const Normal& direction) const {
-        return 0.0f; //The ray will never get scattered in any direction
-    }
-    virtual Point random(const Point& o) const {
-        return Point{1, 0, 0};
     }
 
 };

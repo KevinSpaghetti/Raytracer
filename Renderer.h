@@ -11,7 +11,6 @@
 #include "SceneGraph/Node.h"
 #include "Utils/Buffer.h"
 #include "Utils/Tile.h"
-#include "Utils/Camera.h"
 #include "Geom/Intersection.h"
 #include "Utils/Consts.h"
 #include "Materials/VNMaterial.h"
@@ -46,12 +45,29 @@ public:
     Renderer() : configuration() {}
 
     //For now render only color
-    void render(Node graph, Buffer<Color>& target, Camera cam){
+    //cam must be a pointer to CameraNode in the scene
+    void render(std::shared_ptr<Node> graph, Buffer<Color>& target, CameraNode* cam){
         render_info.stage = Started;
         //Save the camera
-        camera = cam;
-        //Save the scene and build the bvh
+        active_camera = cam;
+        //Save the scene, process the graph and build the bvh
         scene = graph;
+
+        //Process scene graph
+
+        //Compute the global transforms for every node
+        Node::computeGlobalTransforms(scene.get());
+
+        //Now that we have all the nodes in the scene in world space we need to:
+        //  Find and collect all the lights to perform importance sampling
+        //  Find and collect all the geometry and the lights to trace the scene
+        //Then we can start importance sampling by having
+        //  A vector of lights and their positions
+        //  An acceleration structure that we can sample for the nodes and the lights
+        //
+        //  Detach nodes like cameras and empty nodes?
+
+
 
         //Divide the buffer in tiles
         //int tile_number = 1;
@@ -68,7 +84,6 @@ public:
 
 
         std::cout << "Building the bvh\n";
-        bvh = BVH(graph);
         std::cout << "Done\n";
 
         //Calculate samples needed to finish
@@ -79,7 +94,7 @@ public:
         std::cout << "Need " << render_info.samples_needed << " Samples\n";
 
         //Create the sampler
-        sampler = std::make_unique<BackwardIntegrator>(&bvh, BackwardIntegrator::SceneSamplerConfiguration{
+        sampler = std::make_unique<BackwardIntegrator>(graph.get(), BackwardIntegrator::SceneSamplerConfiguration{
                 configuration.max_ray_depth,
                 configuration.max_ray_depth_material,
                 configuration.no_hit_material
@@ -113,14 +128,13 @@ public:
         return configuration.no_hit_material;
     }
 
-    void set_updater(std::chrono::milliseconds interval, std::function<void(const RenderInfo&)> function){
-        interval = interval;
+    void set_updater(const std::chrono::milliseconds interval, std::function<void(const RenderInfo&)> function){
+        this->interval = interval;
         updater = function;
     }
 
 private:
 
-    //TODO: Extract logic in object
     void update(){
         //We need to sleep the thread for seconds, or else the fast reads on samples_completed
         //block the other threads (the workers) from executing and we have a slow down
@@ -140,7 +154,7 @@ private:
                 for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
                     glm::vec2 random_2D = {randomized::scalar::random(-1, 1), randomized::scalar::random(-1, 1)};
                     glm::vec2 sample_coords = (tile.getStart() + glm::vec2{j, i} + random_2D) / (tile.getDimensions() * static_cast<float>(tile_number));
-                    Ray r = camera.get(sample_coords.x, sample_coords.y);
+                    Ray r = active_camera->get(sample_coords.x, sample_coords.y);
 
                     Color sample_color = sampler->sample(r);
 
@@ -158,9 +172,9 @@ private:
 private:
     std::unique_ptr<BackwardIntegrator> sampler;
     int tile_number = 4;
-    Camera camera;
-    Node scene;
-    BVH bvh;
+    CameraNode *active_camera;
+    std::shared_ptr<Node> scene;
+    //std::shared_ptr<BVH> bvh;
 
 
     std::chrono::milliseconds interval{1000};

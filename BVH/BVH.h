@@ -7,7 +7,7 @@
 #include <iostream>
 #include "../Geom/Intersection.h"
 #include "../Geom/ObjectIntersection.h"
-
+/*
 //TODO: Build a better bvh by not using the ordering in the scene graph
 //TODO: Fix rotations, it doesn't work with rotations in the scene because we cannot
 //      rotate the AABB
@@ -18,12 +18,12 @@ public:
     BVH(){};
 
     //Build the BVH from the scene graph
-    BVH(Node root) : node(root){
+    BVH(Node* root) : node(root){
 
         //Start with the mesh bounding box
-        box = root.getSurroundingBox();
-        for (const auto& child : root.getChildren()) {
-            auto sub_box{std::make_shared<BVH>(*child)}; //Build the BVH subtree based on the child node n
+        box = root->getSurroundingBox();
+        for (const auto& child : root->getChildren()) {
+            auto sub_box{std::make_shared<BVH>(child.get())}; //Build the BVH subtree based on the child node n
             //Grow the node bounding box to contain all the children
             //bounding boxes
             box = AABB(box, sub_box->getSurroundingBox());
@@ -81,3 +81,4 @@ protected:
     Node node;
     std::vector<std::shared_ptr<BVH>> children;
 };
+*/

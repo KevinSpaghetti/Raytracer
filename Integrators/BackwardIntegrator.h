@@ -8,7 +8,7 @@
 #include <utility>
 
 #include "Integrator.h"
-#include "../SceneGraph/Hittable.h"
+#include "../Geom/Hittable.h"
 #include "../Utils/PDF.h"
 
 
@@ -22,7 +22,10 @@ public:
     };
 
     BackwardIntegrator() = delete;
-    BackwardIntegrator(Hittable* scene, SceneSamplerConfiguration  configuration) : scene(scene), configuration(std::move(configuration)) {}
+    BackwardIntegrator(Node* scene, SceneSamplerConfiguration  configuration) : scene(scene), configuration(std::move(configuration)) {
+
+
+    }
 
     Color sample(const Ray &r) const override {
         return trace(r, 0);
@@ -42,14 +45,17 @@ private:
             return noIntersections(r);
         }
 
-        auto material = intersection.node->getMaterial();
+        //An intersection can occur only on a VisualNode node type or its
+        //subclasses
+        const auto* node = dynamic_cast<const VisualNode*>(intersection.node);
+        auto material = node->getMaterial();
         Ray ray{};
         Color incoming{0.0, 0.0, 0.0};
 
         if (material->scatter(intersection, r, ray)) {
             CosinePDF cs(intersection.pn);
-            ObjectPDF ob(nodelight, intersection.pv);
-            MixPDF pdf(&cs, &ob);
+            //ObjectPDF ob(nodelight, intersection.pv);
+            MixPDF pdf(&cs, &cs);
             Normal dir = pdf.generate();
             float val = pdf.value(dir);
             incoming = trace(Ray(intersection.pv, dir), ++ray_depth);
@@ -96,6 +102,6 @@ protected:
     }
 
 private:
-    Hittable* scene;
+    Node* scene;
     SceneSamplerConfiguration configuration;
 };

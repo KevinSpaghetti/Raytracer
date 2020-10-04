@@ -9,7 +9,7 @@
 #include "../Geom/ONB.h"
 #include "Consts.h"
 #include "Random.h"
-#include "../SceneGraph/Hittable.h"
+#include "../Geom/Hittable.h"
 
 class PDF {
 public:

@@ -4,6 +4,6 @@
 
 #pragma once
 
-#include "../SceneGraph/IntersectTestable.h"
+#include "../Geom/IntersectTestable.h"
 
 class AccelerationStructure : public IntersectTestable {};

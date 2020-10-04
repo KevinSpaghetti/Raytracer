@@ -5,7 +5,7 @@
 #pragma once
 
 #include "AccelerationStructure.h"
-#include "../SceneGraph/IntersectTestable.h"
+#include "../Geom/IntersectTestable.h"
 #include "../Utils/Triangle.h"
 
 class ExhaustiveSearch : public AccelerationStructure {

@@ -17,7 +17,7 @@ add_executable(Test
         Utils/Tile.h
         Geom/Intersections.h
         Geom/Intersection.h
-        SceneGraph/Hittable.h
+        Geom/Hittable.h
         Materials/Material.h
         Materials/VNMaterial.h
         Mesh/Mesh.h
@@ -28,7 +28,7 @@ add_executable(Test
         Utils/Random.h
         Mesh/TriangleMesh.h
         Mesh/SphereMesh.h
-        SceneGraph/IntersectTestable.h
+        Geom/IntersectTestable.h
         BVH/Boxable.h
         BVH/AABB.h
         BVH/CanQueryForHits.h
@@ -51,11 +51,10 @@ add_executable(Test
         Materials/SolidColorMaterial.h
         Materials/SkyMaterial.h
         Geom/ONB.h
-        Utils/PDF.h)
+        Utils/PDF.h SceneGraph/ImportanceSamplingEnabled.h)
 
 execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
 execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)
 
 target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT} glfw vulkan)
 target_compile_options(Test PRIVATE -g)
-target_compile_options(Test PRIVATE -O3)

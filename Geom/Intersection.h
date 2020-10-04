@@ -11,6 +11,8 @@
 #include "../Utils/Structs.h"
 
 struct Intersection {
+    //TODO: Add pv pn in object and world space
+
     Vertex pv{}; //Point in which the ray hits the mesh
     Normal pn{}; //Normal of the point in which the ray hits the mesh
     UV uv{};
