@@ -7,7 +7,25 @@
 #include <iostream>
 #include "../Geom/Intersection.h"
 #include "../Geom/ObjectIntersection.h"
-/*
+
+//TODO: move
+AABB applyTransform(AABB box, GlobalTransform t){
+    Dimension extent = box.getMax() - box.getMin();
+    Point min = box.getMin();
+    Point max = box.getMax();
+    std::vector<Point> points({
+              t.pointToWorldSpace(min),
+              t.pointToWorldSpace(min + Point{extent.x, 0.0f, 0.0f}),
+              t.pointToWorldSpace(min + Point{0.0f, extent.y, 0.0f}),
+              t.pointToWorldSpace(min + Point{0.0f, 0.0f, extent.z}),
+              t.pointToWorldSpace(max - Point{extent.x, 0.0f, 0.0f}),
+              t.pointToWorldSpace(max - Point{0.0f, extent.y, 0.0f}),
+              t.pointToWorldSpace(max - Point{0.0f, 0.0f, extent.z}),
+              t.pointToWorldSpace(max)
+    });
+    return AABB(points);
+}
+
 //TODO: Build a better bvh by not using the ordering in the scene graph
 //TODO: Fix rotations, it doesn't work with rotations in the scene because we cannot
 //      rotate the AABB
@@ -15,57 +33,92 @@
 //Not boxable since extern agents do not need to know that the class relies on bounding boxes
 class BVH : public Hittable {
 public:
-    BVH(){};
 
-    //Build the BVH from the scene graph
-    BVH(Node* root) : node(root){
+    BVH(std::vector<VisualNode*> nodes){
 
-        //Start with the mesh bounding box
-        box = root->getSurroundingBox();
-        for (const auto& child : root->getChildren()) {
-            auto sub_box{std::make_shared<BVH>(child.get())}; //Build the BVH subtree based on the child node n
-            //Grow the node bounding box to contain all the children
-            //bounding boxes
-            box = AABB(box, sub_box->getSurroundingBox());
-            children.push_back(sub_box); //Add the BVH subtree
+        if(nodes.size() == 1){
+            box = applyTransform(nodes[0]->getSurroundingBox(), nodes[0]->transform_global());
+            node = nodes[0];
+            left = nullptr;
+            right = nullptr;
+            return ;
         }
-    }
-
-
-    void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) const override {
-
-        //Transform the ray from world space to object space
-        Ray t(node.pointToObjectSpace(r.getOrigin()),
-              node.directionToObjectSpace(r.getDirection()));
-
-        //Check the ray hit against this node bounding box
-        if(!box.isHit(t)) {
-            //If the ray does not hit the hitbox it will not hit the object
+        if(nodes.size() == 2){
+            AABB b1 = applyTransform(nodes[0]->getSurroundingBox(), nodes[0]->transform_global());
+            AABB b2 = applyTransform(nodes[1]->getSurroundingBox(), nodes[1]->transform_global());
+            box = b1;
+            box.grow(b2);
+            node = nullptr;
+            left = std::make_unique<BVH>(std::vector<VisualNode*>({nodes[0]}));
+            right = std::make_unique<BVH>(std::vector<VisualNode*>({nodes[1]}));
             return ;
         }
 
-        int tail = intersections.size();
-
-        //If the ray hits the bounding box check
-        //1. the object inside the bounding box
-        std::vector<Intersection> mesh_intersections;
-        node.getMesh()->intersect(t, mesh_intersections);
-        for(Intersection is : mesh_intersections){
-            intersections.push_back({
-                    is,
-                    &node
-            });
+        node = nullptr;
+        //Build this node bounding box
+        box = AABB();
+        for (const auto& n : nodes) {
+            //Transform the bounding box in world space
+            //(Need to reconstruct if its an AABB for rotations)
+            AABB child_box = applyTransform(n->getSurroundingBox(), n->transform_global());
+            box = AABB(box, child_box);
         }
-
-        //2. the children bounding boxes
-        for (const auto& child : children){
-            child->hit(t, intersections);
-        }
-
-        std::for_each(intersections.begin()+tail, intersections.end(), [this](auto it){
-            it.point = node.pointToWorldSpace(it.point);
-            it.normal = node.directionToWorldSpace(it.normal);
+        //Decide which nodes need to go in the left and right bins
+        int axis = static_cast<int>(randomized::scalar::random(0, 2)); //Split along a random axis
+        std::sort(nodes.begin(), nodes.end(), [axis](const VisualNode* n1, const VisualNode* n2) -> bool {
+            AABB node_box1 = applyTransform(n1->getSurroundingBox(), n1->transform_global());
+            AABB node_box2 = applyTransform(n2->getSurroundingBox(), n2->transform_global());
+            return node_box1.getCenter()[axis] < node_box2.getCenter()[axis];
         });
+
+        const int half = nodes.size() / 2;
+        std::vector<VisualNode*> nodes_left = std::vector<VisualNode*>(nodes.begin(), nodes.begin() + half);
+        std::vector<VisualNode*> nodes_right = std::vector<VisualNode*>(nodes.begin() + half, nodes.end());
+
+        if(nodes_left.empty()){
+            left = nullptr;
+        }else{
+            left = std::make_unique<BVH>(nodes_left);
+        }
+        if(nodes_left.empty()){
+            right = nullptr;
+        }else{
+            right = std::make_unique<BVH>(nodes_right);
+        }
+    };
+
+    void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) const override {
+
+
+        if(node != nullptr){
+            //Apply the transform to the ray
+            Ray t(node->transform_global().pointToObjectSpace(r.getOrigin()),
+                  node->transform_global().directionToObjectSpace(r.getDirection()),
+                  r.getType());
+
+            std::vector<Intersection> mesh_intersections;
+            node->getMesh()->intersect(t, mesh_intersections);
+            for (Intersection &is : mesh_intersections) {
+                //Push back the object with the coords in object space
+                ObjectIntersection o{};
+                o.point = is.point;
+                o.normal = is.normal;
+                o.ws_point = node->transform_global().pointToWorldSpace(is.point);
+                o.ws_normal = node->transform_global().directionToWorldSpace(is.normal);
+                o.uv = is.uv;
+                o.node = node;
+                intersections.push_back(o);
+            }
+        }
+
+        //Check the children nodes in the parent
+        //to allow SIMD operations
+        if(left != nullptr){
+            left->hit(r, intersections);
+        }
+        if(right != nullptr){
+            right->hit(r, intersections);
+        }
     }
 
 private:
@@ -77,8 +130,9 @@ private:
     }
 
 protected:
-    AABB box;
-    Node node;
-    std::vector<std::shared_ptr<BVH>> children;
+    AABB box = AABB();
+    VisualNode* node = nullptr;
+
+    std::unique_ptr<BVH> left;
+    std::unique_ptr<BVH> right;
 };
-*/

@@ -33,13 +33,11 @@ public:
             Point reflected = glm::reflect(incoming.getDirection(), i.ws_normal);
             return Ray(i.ws_point, reflected, Ray::Type::Specular);
         }
-
         double reflect_prob = schlick(cos_theta, etai);
         if (randomized::scalar::random() < reflect_prob){
             Point reflected = glm::reflect(incoming.getDirection(), glm::normalize(i.ws_normal));
             return Ray(i.ws_point, reflected, Ray::Type::Specular);
         }
-
 
         Point refracted = glm::refract(incoming.getDirection(), i.ws_normal , etai);
         return Ray(i.ws_point, refracted, Ray::Type::Transmission);

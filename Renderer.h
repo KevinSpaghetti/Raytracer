@@ -58,7 +58,6 @@ public:
 
         //Compute the global transforms for every node
         Node::computeGlobalTransforms(scene.get());
-
         //Now that we have all the nodes in the scene in world space we need to:
         //  Find and collect all the lights to perform importance sampling
         //  Find and collect all the geometry and the lights to trace the scene
@@ -74,7 +73,7 @@ public:
         collectVisuals(scene.get(), visuals);
 
         scene_list = std::make_shared<SceneList>(visuals, lights);
-
+        bvh = std::make_shared<BVH>(visuals);
 
         //Divide the buffer in tiles
         //int tile_number = 1;
@@ -100,7 +99,7 @@ public:
         std::cout << "Need " << render_info.samples_needed << " Samples\n";
 
         //Create the sampler
-        sampler = std::make_unique<BackwardIntegrator>(scene_list.get(), BackwardIntegrator::SceneSamplerConfiguration{
+        sampler = std::make_unique<BackwardIntegrator>(bvh.get(), BackwardIntegrator::SceneSamplerConfiguration{
                 configuration.max_ray_depth,
                 configuration.max_ray_depth_material,
                 configuration.no_hit_material
@@ -201,7 +200,7 @@ private:
     CameraNode *active_camera;
     std::shared_ptr<Node> scene;
     std::shared_ptr<SceneList> scene_list;
-    //std::shared_ptr<BVH> bvh;
+    std::shared_ptr<BVH> bvh;
 
 
     std::chrono::milliseconds interval{1000};

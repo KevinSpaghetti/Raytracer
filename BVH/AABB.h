@@ -19,7 +19,7 @@ public:
     //Create a bounding box which encloses all the points in the list
     AABB(const std::vector<Point>& points){
         min = {+consts::infinity, +consts::infinity, +consts::infinity};
-        max = -max;
+        max = -min;
         //Grow the bounding box
         for(Vertex v : points){
             for (int i = 0; i < 3; ++i) {
@@ -41,10 +41,22 @@ public:
         min = small;
         max = big;
     }
-    //Construct a box which encloses all the boxes in the vector
+
+    //Grow this bbox
+    void grow(AABB b){
+        Point small(fmin(min.x, b.getMin().x),
+                    fmin(min.y, b.getMin().y),
+                    fmin(min.z, b.getMin().z));
+        Point big(fmax(max.x, b.getMax().x),
+                  fmax(max.y, b.getMax().y),
+                  fmax(max.z, b.getMax().z));
+        min = small;
+        max = big;
+    }
 
     bool isHit(const Ray& r) const override {
-        float tmin, tmax;
+        float tmin = 0.0f;
+        float tmax = 0.0f;
         return getHitPoint(r, tmin, tmax);
     }
     //One intersection enters and one exits the cube
@@ -92,6 +104,10 @@ public:
         return max;
     }
 
+    Point getCenter() const {
+        return min + (max - min) / 2.0f;
+    }
+
     void intersect(const Ray &r, std::vector<Intersection>& intersections) const override {
 
         float tmin, tmax;
@@ -115,8 +131,7 @@ public:
     }
 
 private:
-
-
     Point min;
     Point max;
 };
+

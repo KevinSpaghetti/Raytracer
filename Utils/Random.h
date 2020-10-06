@@ -4,13 +4,16 @@
 
 #pragma once
 
+#include <random>
 #include "glm/glm.hpp"
 
 namespace randomized {
 
     namespace scalar {
-        static float random(){
-            return rand() / (RAND_MAX + 1.0);
+        static float random() {
+            static thread_local std::mt19937 generator;
+            std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+            return distribution(generator);
         }
 
         static float random(float min, float max){

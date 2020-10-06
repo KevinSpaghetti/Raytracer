@@ -120,7 +120,7 @@ public:
         //Apply the transform to the ray
         //The recursion applies the transforms without the need to explicitly multiply the matrices
         Ray t(global.pointToObjectSpace(r.getOrigin()),
-              global.directionToObjectSpace(r.getDirection()));
+              global.directionToObjectSpace(r.getDirection()), r.getType());
 
         std::vector<Intersection> mesh_intersections;
         mesh->intersect(t, mesh_intersections);
@@ -147,6 +147,7 @@ public:
     AABB getSurroundingBox() const override {
         return mesh->getSurroundingBox();
     }
+
 
     Mesh* getMesh() const{
         return mesh.get();
