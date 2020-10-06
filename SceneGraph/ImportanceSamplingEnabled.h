@@ -5,14 +5,15 @@
 #pragma once
 
 #include "../Utils/Structs.h"
+#include "../Utils/PDF.h"
 
 class ImportanceSamplingEnabled {
+public:
     //Importance sampling points and directions are all passed in world space
 
-    //
-    virtual double pdf(const Point& origin, const Normal& direction) const = 0;
+    //Return a ray from origin towards a random point on the light in world space
+    virtual Color random(const Point& origin) const = 0;
 
-    //Return a random point on the light surface
-    virtual Point random(const Point& o) const = 0;
+
 };
 

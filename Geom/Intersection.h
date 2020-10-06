@@ -11,12 +11,22 @@
 #include "../Utils/Structs.h"
 
 struct Intersection {
-    //TODO: Add pv pn in object and world space
+    //TODO: Add point normal in object and world space
+    //Object Space
+    Vertex point{}; //Point in which the ray hits the mesh
+    Normal normal{}; //Normal of the point in which the ray hits the mesh
 
-    Vertex pv{}; //Point in which the ray hits the mesh
-    Normal pn{}; //Normal of the point in which the ray hits the mesh
+    //Both for object and for world space
     UV uv{};
 
-    //Backface culling options
     bool isFront = true;
+
+    //World space can be computed only when creating an object
+    //intersection since the mesh does not hold any transforms,
+    //its the node that transforms the intersection object space
+    //coordinates (point, normal) into world space
+
+    //World space
+    Vertex ws_point{};
+    Vertex ws_normal{};
 };

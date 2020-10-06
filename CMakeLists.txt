@@ -19,7 +19,6 @@ add_executable(Test
         Geom/Intersection.h
         Geom/Hittable.h
         Materials/Material.h
-        Materials/VNMaterial.h
         Mesh/Mesh.h
         Textures/ImageTexture.h
         Loader/ImageTextureLoader.h
@@ -51,7 +50,10 @@ add_executable(Test
         Materials/SolidColorMaterial.h
         Materials/SkyMaterial.h
         Geom/ONB.h
-        Utils/PDF.h SceneGraph/ImportanceSamplingEnabled.h)
+        Utils/PDF.h
+        SceneGraph/ImportanceSamplingEnabled.h
+        SceneGraph/SceneList.h
+        Integrators/BackwardIntegratorMIS.h Materials/PropsBasedObject.h Materials/PBRMaterial.h)
 
 execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
 execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)

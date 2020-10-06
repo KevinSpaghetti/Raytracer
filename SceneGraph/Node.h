@@ -108,8 +108,6 @@ class EmptyNode : public Node {
 };
 class VisualNode : public Node, public Boxable<AABB> {
 public:
-    VisualNode() = delete;
-
     VisualNode(const std::shared_ptr<Mesh> mesh, const std::shared_ptr<Material> material)
         : mesh(mesh), material(material) {}
 
@@ -128,9 +126,14 @@ public:
         mesh->intersect(t, mesh_intersections);
         for(Intersection& is : mesh_intersections){
             //Push back the object with the coords in object space
-            is.pv = global.pointToWorldSpace(is.pv);
-            is.pn = global.directionToWorldSpace(is.pn);
-            intersections.push_back({is, this});
+            ObjectIntersection o{};
+            o.point = is.point;
+            o.normal = is.normal;
+            o.ws_point = global.pointToWorldSpace(is.point);
+            o.ws_normal = global.directionToWorldSpace(is.normal);
+            o.uv = is.uv;
+            o.node = this;
+            intersections.push_back(o);
         }
 
         for (auto child : children) {
@@ -153,47 +156,49 @@ public:
     }
 
 protected:
+    VisualNode() {}
+
     std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Material> material;
 };
-class AreaLightNode : public VisualNode, public ImportanceSamplingEnabled {
+class LightNode : public VisualNode, public ImportanceSamplingEnabled {
+protected:
+    LightNode(const std::shared_ptr<Mesh> mesh,const std::shared_ptr<Material> material) : VisualNode(mesh, material) {}
 
-    //Area light node is a special type of visual node used in importance sampling
-    AreaLightNode(const float width, const float height, const Color color, const float intensity)
-        : VisualNode(std::make_shared<AARectMesh>(AARectMesh::Axis::XZ, Point{0, 0, 0}, width, height), std::make_shared<DiffuseLight>(color, intensity)),
-          width(width),
-          height(height),
-          center({0, 0, 0}) {}
-
+public:
     Type type() const override {
         return Type::Light;
     }
 
-    //Define functions for importance sampling
-    //Importance sampling is a LightNode responsibility
-    virtual double pdf(const Point& origin, const Normal& direction) const override {
-        std::vector<Intersection> ins;
-        //This does not work since we need to sample if the ray intersects something in the scene,
-        //doing it like this only checks if the ray hits the light with direction and origin
-        mesh->intersect(Ray(origin, direction), ins);
-        if (ins.empty()) return 0.0f;
+    virtual Ray randomPoint(const Point& origin) const = 0;
 
-        Intersection i = ins.front();
+};
+class AreaLightNode : public LightNode {
+public:
+    //Area light node is a special type of visual node used in importance sampling
+    AreaLightNode(const float width, const float height, const Color color, const float intensity)
+        : LightNode(std::make_shared<AARectMesh>(AARectMesh::Axis::XZ, Point{0, 0, 0}, width, height),
+                    std::make_shared<DiffuseLight>(color, intensity)),
+          width(width),
+          height(height),
+          center({0, 0, 0}) {}
 
-        //Doesn't work because we need to transform the light to world space
-        float area = width * height;
-        float distance_squared = glm::length(i.pv - origin) * glm::length(i.pv - origin) * glm::length(direction);
-        float cosine = fabs(glm::dot(direction, i.pn) / glm::length(direction));
-
-        return distance_squared / (cosine * area);
-    }
-
-    virtual Point random(const Point& o) const override {
+    Ray randomPoint(const Point& origin) const override {
         auto random_point = Point{randomized::scalar::random(-width/2, width/2),
                                   0,
                                   randomized::scalar::random(-height/2, height/2)};
-        return center + random_point;
+
+        //Transform random_point from local space to world space
+        random_point = global.pointToWorldSpace(random_point);
+        //Set the ray as a shadow ray
+        return Ray(origin, glm::normalize(random_point - origin), Ray::Type::Shadow);
     }
+
+    Color random(const Point &origin) const override {
+        return {0, 0, 0};
+    }
+
+
 protected:
     float width;
     float height;
@@ -224,7 +229,9 @@ public:
     Ray get(float s, float t) const {
         //vec3 rd = lens_radius * randomized::vector::in_unit_disk();
         Point offset = {0, 0, 0}; //u * rd.x + v * rd.y;
-        return Ray(origin + offset, upper_left_corner + s*horizontal - t*vertical - origin - offset);
+        const Point r_origin = origin + offset;
+        const Point r_direction = upper_left_corner + s*horizontal - t*vertical - origin - offset;
+        return Ray(r_origin, r_direction, Ray::Type::Camera);
     }
 
     Type type() const override {

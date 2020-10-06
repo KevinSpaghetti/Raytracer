@@ -8,13 +8,24 @@
 
 class Ray {
 public:
+    enum class Type {
+        Camera,
+        Diffuse,
+        Specular,
+        Transmission,
+        Shadow,
+        Unknown
+    };
+
     //Init the ray with some values so we don't get errors for uninitialized memory
     Ray() :
+        type(Type::Unknown),
         origin({0, 0, 0}),
         direction({0, 0, 0}), //Dangerous when normalizing causes crash
         tmin(0.001),
         tmax(+consts::infinity) {}
-    Ray(const Point origin, const Normal direction, const float tmin = 0.001, const float tmax = consts::infinity) :
+    Ray(const Point origin, const Normal direction, const Type type = Type::Unknown, const float tmin = 0.001, const float tmax = consts::infinity) :
+        type(type),
         origin(origin),
         direction(glm::normalize(direction)),
         tmin(tmin),
@@ -39,6 +50,7 @@ public:
     }
 
 private:
+    Type type;
     Point origin;
     Normal direction;
 

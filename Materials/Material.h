@@ -7,39 +7,22 @@
 #include "../Geom/Ray.h"
 #include "../Geom/Intersection.h"
 #include "../Textures/ImageTexture.h"
+#include "PropsBasedObject.h"
+#include "../Utils/PDF.h"
 
-//The function emitted and scattered can be called multiple times
-//To create a material override
-// - emitted: The emitted light
-// - scattered: The scattered light
-// - scatter: Scatter the ray
-class Material {
+
+class Material : public PropsBasedObject {
 public:
-    //Scatter the ray
-    virtual bool scatter(const Intersection& i, const Ray& incoming, Ray& outgoing) const = 0;
 
-    //Get the color of the material at the surface point
-    //Override this function to implement effects or
-    //to use the ray and intersection point in the blending process
-    virtual Color color(const Intersection& i, const Ray& r, const Color& incoming) const = 0;
-    //Importance sampled version of color function
-    virtual Color color(const Intersection& i, const Ray& r, const Color& incoming, const float pdf) const {
-        return color(i, r, incoming);
-    }
+    //wo: direction of outgoing light (from the point to the eye)
+    //wi: direction of incoming light (from emission point to surface)
+    virtual Color f(const Intersection &i, const Ray& wi, const Ray& wo) const = 0;
 
-    virtual float sPDF(const Intersection& i, const Ray& r, const Ray& outgoing) const {
-        return 0.0;
-    }
+    //Return true if the ray scatters
+    virtual bool scatters(const Intersection &i, const Ray& incoming) const = 0;
+    //Return a scattered ray
+    virtual Ray scatter(const Intersection& i, const Ray& incoming) const = 0;
 
-    void addTexture(std::string key, std::shared_ptr<Texture> texture){
-        textures.insert(std::pair<std::string, std::shared_ptr<Texture>>(key, texture));
-    }
-    void removeTexture(std::string key){
-        textures.erase(key);
-    }
-
-
-protected:
-    std::map<std::string, std::shared_ptr<Texture>> textures;
-
+    virtual bool emits(const Intersection& i, const Ray& incoming) const = 0;
+    virtual Color emit(const Intersection& i, const Ray& incoming) const = 0;
 };

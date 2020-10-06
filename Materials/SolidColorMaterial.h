@@ -10,12 +10,22 @@ class SolidColorMaterial : public Material {
 public:
     SolidColorMaterial(Color c) : c(c) {}
 
-    bool scatter(const Intersection &i, const Ray &incoming, Ray &outgoing) const override {
-        return false;
+    Color f(const Intersection &i, const Ray& wi, const Ray& wo) const override {
+        return Color{0.0, 0.0, 0.0};
     }
 
-    Color color(const Intersection &i, const Ray &r, const Color &incoming) const override {
+    bool emits(const Intersection& i, const Ray& incoming) const override {
+        return true;
+    }
+    Color emit(const Intersection& i, const Ray& incoming) const override {
         return c;
+    }
+
+    bool scatters(const Intersection &i, const Ray &incoming) const override {
+        return false;
+    }
+    Ray scatter(const Intersection &i, const Ray &incoming) const override {
+        return Ray();
     }
 
 private:

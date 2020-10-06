@@ -63,8 +63,8 @@ public:
         }
 
         std::for_each(intersections.begin()+tail, intersections.end(), [this](auto it){
-            it.pv = node.pointToWorldSpace(it.pv);
-            it.pn = node.directionToWorldSpace(it.pn);
+            it.point = node.pointToWorldSpace(it.point);
+            it.normal = node.directionToWorldSpace(it.normal);
         });
     }
 

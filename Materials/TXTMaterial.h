@@ -8,14 +8,24 @@
 
 class TXTMaterial : public Material {
 public:
-    bool scatter(const Intersection &i, const Ray& incoming, Ray& outgoing) const override {
-        Point direction = i.pn + randomized::vector::unit_vector();
-        outgoing =  Ray(i.pv, direction);
-        return true;
+
+    virtual Color f(const Intersection &i, const Ray& wi, const Ray& wo) const override {
+        return textures.at("albedo")->value(i.uv);
     }
 
-    Color color(const Intersection &i, const Ray &r, const Color &incoming) const override {
-        std::shared_ptr<Texture> txt = textures.at("albedo");
-        return 0.8f * txt->value(i.uv) + 0.2f * incoming;
+    bool scatters(const Intersection &i, const Ray &incoming) const override {
+        return true;
     }
+    Ray scatter(const Intersection &i, const Ray& incoming) const override {
+        Point direction = i.ws_normal + randomized::vector::unit_vector();
+        return Ray(i.ws_point, direction);
+    }
+
+    virtual bool emits(const Intersection& i, const Ray& incoming) const override {
+        return false;
+    }
+    virtual Color emit(const Intersection& i, const Ray& incoming) const override {
+        return {0.0, 0.0, 0.0};
+    }
+
 };

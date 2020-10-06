@@ -3,7 +3,6 @@
 //
 
 #include "SceneGraph/Node.h"
-static std::shared_ptr<Node> nodelight;
 #include "Loader/OBJLoader.h"
 #include "Utils/Buffer.h"
 #include "Output/ColorBufferFormatPPM.h"
@@ -25,6 +24,7 @@ static std::shared_ptr<Node> nodelight;
 #include "Materials/SkyMaterial.h"
 #include "Mesh/AARectMesh.h"
 #include "Mesh/BoxMesh.h"
+#include "Materials/PBRMaterial.h"
 
 using namespace std::chrono_literals; //For second, milliseconds etc
 
@@ -46,8 +46,6 @@ EmptyNode createCornellBox(){
     auto metal = std::make_shared<Metal>(Color(.12, .45, .15), 0.0);
     auto dielectric = std::make_shared<Dielectric>(1.5);
 
-    auto light = std::make_shared<DiffuseLight>(Color(1, 1, 1), 5.0f);
-
     auto left = std::make_shared<PlaneMesh>(Point{-50, 0, 0},
                                             Normal{1, 0, 0});
     auto right = std::make_shared<PlaneMesh>(Point{50, 0, 0},
@@ -58,13 +56,10 @@ EmptyNode createCornellBox(){
                                            Normal{0, -1, 0});
     auto bg = std::make_shared<PlaneMesh>(Point{0, 0, -50},
                                           Normal{0, 0, 1});
-
     auto sp = std::make_shared<SphereMesh>(Point{0, 0, 0}, 20);
-    auto sp1 = std::make_shared<SphereMesh>(Point{-30, -30, 20}, 10);
-    auto sp2 = std::make_shared<SphereMesh>(Point{30, -30, 10}, 15);
-    auto sp3 = std::make_shared<SphereMesh>(Point{25, -25, 30}, -10);
-
-    auto light_plane = std::make_shared<AARectMesh>(AARectMesh::Axis::XZ, Point{0, 49.9999, 0}, 40.0f, 40.0f);
+    auto sp1 = std::make_shared<SphereMesh>(Point{0, 0, 0}, 10);
+    auto sp2 = std::make_shared<SphereMesh>(Point{0, 0, 0}, 15);
+    auto sp3 = std::make_shared<SphereMesh>(Point{0, 0, 0}, -10);
 
     //auto nsphere = std::make_shared<Node>(sp, dielectric);
     auto nsphere1 = std::make_shared<VisualNode>(sp1, metal);
@@ -74,7 +69,7 @@ EmptyNode createCornellBox(){
     auto nsphere2 = std::make_shared<VisualNode>(sp2, image_mtl);
     auto nsphere3 = std::make_shared<VisualNode>(sp3, dielectric);
 
-    auto nlight = std::make_shared<VisualNode>(light_plane, light);
+    auto light = std::make_shared<AreaLightNode>(100.0f, 100.0f, Color{1, 1, 1}, 5.0f);
     auto nleft = std::make_shared<VisualNode>(left, green);
     auto nright = std::make_shared<VisualNode>(right, red);
     auto ntop = std::make_shared<VisualNode>(top, white);
@@ -85,17 +80,19 @@ EmptyNode createCornellBox(){
     auto spheres = std::make_shared<EmptyNode>();
     box->add(nleft);
     box->add(nright);
-    box->add(ntop);
+    //box->add(ntop);
     box->add(nbottom);
     box->add(nbg);
 
-    nsphere2->translate({-20, -20, 0});
+    nsphere2->translate({-20, 0, 0});
+    nsphere1->translate({20, 0, 0});
     spheres->add(nsphere1);
     spheres->add(nsphere2);
+    nsphere3->translate({0, -20, 0});
+    root.add(nsphere3);
 
     //spheres->rotate({0, 0, 1}, glm::radians(40.0f));
-    spheres->translate({0, 40, -10});
-    //nlight->translate({0, 49.9999, 0});
+    light->translate({0, 50, 0});
     auto pt = std::make_shared<EmptyNode>();
     pt->scale({1.5, 1.5, 1.5});
     pt->translate({0, -40, -10});
@@ -106,17 +103,14 @@ EmptyNode createCornellBox(){
     auto spr = std::make_shared<SphereMesh>(Point{0, 0, 0}, 10.0f);
     auto cube = std::make_shared<VisualNode>(spr, grey);
 
-    cube->translate({0, -20, 0});
-    root.add(cube);
+    spheres->translate({0.0, 10, 0.0});
+    //root.add(cube);
     root.add(box);
     root.add(spheres);
-    //root.add(nsphere3);
-    root.add(nlight);
-    nodelight = std::make_shared<VisualNode>(light_plane, light);
+    root.add(light);
     //root.add(pt);
     return root;
 }
-
 
 EmptyNode createTransformTest(){
     EmptyNode root;
@@ -160,20 +154,62 @@ EmptyNode createTransformTest(){
     return root;
 }
 
-int main(){
 
+EmptyNode createSpheres(){
+    EmptyNode root;
+
+    auto grey  = std::make_shared<Lambertian>(Color(.6,   .6,  .6));
+    auto red   = std::make_shared<Lambertian>(Color(.65, .05, .05));
+    auto white = std::make_shared<Lambertian>(Color(.73, .73, .73));
+    auto green = std::make_shared<Metal>(Color(.12, .45, .15), 0.01f);
+    auto metal = std::make_shared<Metal>(Color(.12, .45, .15), 0.0);
+    auto dielectric = std::make_shared<Dielectric>(1.5);
+
+    auto pbr = std::make_shared<PBRMaterial>(
+            Color{0.67, 0.36, 0.49},
+            1.0);
+
+    auto pot_geom = std::make_shared<TriangleMesh>(OBJLoader().load("teapot.obj"));
+    pot_geom->buildAccelerationStructure();
+    auto model = std::make_shared<VisualNode>(pot_geom, pbr);
+
+    auto smallg = std::make_shared<SphereMesh>(Point{0,0 ,-1}, 0.5f);
+    auto s1 = std::make_shared<VisualNode>(smallg, pbr);
+    auto s2 = std::make_shared<VisualNode>(smallg, green);
+    auto s3 = std::make_shared<VisualNode>(smallg, dielectric);
+
+    auto bigg = std::make_shared<SphereMesh>(Point{0,-100.5 ,-1}, 100.0f);
+    auto big = std::make_shared<VisualNode>(bigg, grey);
+
+    //root.add(s1);
+    s2->translate({-1.0, 0, 0});
+    //root.add(s2);
+    s3->translate({1.0, 0, 0});
+    //root.add(s3);
+
+    root.add(model);
+    root.add(big);
+
+    return root;
+}
+
+int main(){
+    //TODO: Add IBL
+    //TODO: Improve the OBJ loading method
+    //TODO: Building the bvh
+    //TODO: Implement a physically based brdf
     std::cout << "Creating buffer \n";
     const int width = 500;
     const int height = 500;
     Buffer<Color> color(width, height);
 
-    glm::vec3 lookfrom(0,10,80);
+    glm::vec3 lookfrom(0,16,20);
     glm::vec3 lookat(0,0,0);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1f;
     float aspect_ratio = width / height;
 
-    auto scene = std::make_shared<EmptyNode>(createCornellBox());
+    auto scene = std::make_shared<EmptyNode>(createSpheres());
     std::shared_ptr<CameraNode> camera = std::make_shared<CameraNode>(lookfrom,
                                                                             lookat,
                                                                             consts::up,
@@ -191,7 +227,7 @@ int main(){
 
     Renderer renderer;
     renderer.pixelsamples() = 10;
-    renderer.maxraydepth() = 50;
+    renderer.maxraydepth() = 100;
     renderer.max_depth_material() = std::make_shared<SolidColorMaterial>(Color{0.0, 0.0, 0.0});
     renderer.no_hit_material() = std::make_shared<SkyMaterial>();
     //Updater gets called every n milliseconds

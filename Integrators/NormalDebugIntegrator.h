@@ -21,7 +21,7 @@ public:
             return noIntersections(r);
         }
 
-        return (Point(1.0) + intersection.pn) * Point(0.5f);
+        return (Point(1.0) + intersection.normal) * Point(0.5f);
     }
 
 };

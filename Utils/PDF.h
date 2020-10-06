@@ -38,22 +38,14 @@ private:
     ONB uvw;
 };
 
-class ObjectPDF : public PDF {
-public:
-    ObjectPDF(std::shared_ptr<Hittable> object, const Point& origin) : object(object), origin(origin) {}
-
+class ZeroPDF : public PDF {
     float value(const Direction &direction) const override {
-        return object->pdf(origin, direction);
+        return 0.0f;
     }
 
     Direction generate() const override {
-        return object->random(origin);
+        return Direction{0, 0, 0};
     }
-
-
-private:
-    std::shared_ptr<Hittable> object;
-    Point origin;
 };
 
 class MixPDF : public PDF {

@@ -10,6 +10,7 @@
 #include "Integrator.h"
 #include "../Geom/Hittable.h"
 #include "../Utils/PDF.h"
+#include "../SceneGraph/SceneList.h"
 
 
 class BackwardIntegrator : public Integrator {
@@ -21,11 +22,7 @@ public:
         std::shared_ptr<Material> no_hit_material;
     };
 
-    BackwardIntegrator() = delete;
-    BackwardIntegrator(Node* scene, SceneSamplerConfiguration  configuration) : scene(scene), configuration(std::move(configuration)) {
-
-
-    }
+    BackwardIntegrator(Hittable* scene, SceneSamplerConfiguration  configuration) : scene(scene), configuration(std::move(configuration)) {}
 
     Color sample(const Ray &r) const override {
         return trace(r, 0);
@@ -49,19 +46,27 @@ private:
         //subclasses
         const auto* node = dynamic_cast<const VisualNode*>(intersection.node);
         auto material = node->getMaterial();
-        Ray ray{};
+        Color emitted{0.0, 0.0, 0.0};
         Color incoming{0.0, 0.0, 0.0};
-
-        if (material->scatter(intersection, r, ray)) {
-            CosinePDF cs(intersection.pn);
-            //ObjectPDF ob(nodelight, intersection.pv);
-            MixPDF pdf(&cs, &cs);
-            Normal dir = pdf.generate();
-            float val = pdf.value(dir);
-            incoming = trace(Ray(intersection.pv, dir), ++ray_depth);
-            return material->color(intersection, r, incoming, val);
+        if (material->emits(intersection, r)){
+            emitted = material->emit(intersection, r);
         }
-        return material->color(intersection, r, incoming);
+        //If the material does not scatter light than the rendering equation 2nd term is always 0
+        if (!material->scatters(intersection, r)) {
+            return emitted;
+        }
+
+        Ray scattered = material->scatter(intersection, r);
+        incoming = trace(scattered, ++ray_depth);
+
+        //Direction where the light is coming (to the light)
+        const Ray wi = scattered;
+        //Direction where the light is going (to the eye)
+        const Ray wo = Ray(intersection.ws_point, -r.getDirection());
+        Color brdf = material->f(intersection, wi, wo);
+
+        //Compute the rendering equation with the material parameters
+        return emitted + (brdf * incoming);
     }
 
 protected:
@@ -85,7 +90,7 @@ protected:
         }
 
         intersection = *std::min_element(intersections.begin(), intersections.end(), [&r](auto i1, auto i2){
-            return glm::length(r.getOrigin() - i1.pv) < glm::length(r.getOrigin() - i2.pv);
+            return glm::length(r.getOrigin() - i1.point) < glm::length(r.getOrigin() - i2.point);
         });
         return true;
     }
@@ -95,13 +100,13 @@ protected:
     }
 
     Color maxRayDepthReached(const Ray& r) const {
-        return configuration.max_depth_material->color({}, r, {0.0, 0.0, 0.0});
+        return configuration.max_depth_material->emit(Intersection{}, r);
     }
     Color noIntersections(const Ray& r) const {
-        return configuration.no_hit_material->color({}, r, {0.0, 0.0, 0.0});
+        return configuration.no_hit_material->emit(Intersection{}, r);
     }
 
 private:
-    Node* scene;
+    Hittable* scene;
     SceneSamplerConfiguration configuration;
 };

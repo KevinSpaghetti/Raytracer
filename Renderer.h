@@ -13,12 +13,13 @@
 #include "Utils/Tile.h"
 #include "Geom/Intersection.h"
 #include "Utils/Consts.h"
-#include "Materials/VNMaterial.h"
 #include "Utils/Random.h"
 #include "BVH/BVH.h"
 #include "Geom/ObjectIntersection.h"
 #include "Integrators/BackwardIntegrator.h"
 #include "Integrators/NormalDebugIntegrator.h"
+#include "SceneGraph/SceneList.h"
+#include "Integrators/BackwardIntegratorMIS.h"
 
 class Renderer {
 private:
@@ -66,7 +67,13 @@ public:
         //  An acceleration structure that we can sample for the nodes and the lights
         //
         //  Detach nodes like cameras and empty nodes?
+        std::vector<LightNode*> lights;
+        std::vector<VisualNode*> visuals;
 
+        collectLights(scene.get(), lights);
+        collectVisuals(scene.get(), visuals);
+
+        scene_list = std::make_shared<SceneList>(visuals, lights);
 
 
         //Divide the buffer in tiles
@@ -82,7 +89,6 @@ public:
             ++n_tile;
         }
 
-
         std::cout << "Building the bvh\n";
         std::cout << "Done\n";
 
@@ -94,7 +100,7 @@ public:
         std::cout << "Need " << render_info.samples_needed << " Samples\n";
 
         //Create the sampler
-        sampler = std::make_unique<BackwardIntegrator>(graph.get(), BackwardIntegrator::SceneSamplerConfiguration{
+        sampler = std::make_unique<BackwardIntegrator>(scene_list.get(), BackwardIntegrator::SceneSamplerConfiguration{
                 configuration.max_ray_depth,
                 configuration.max_ray_depth_material,
                 configuration.no_hit_material
@@ -135,6 +141,26 @@ public:
 
 private:
 
+    void collectLights(Node *node, std::vector<LightNode*>& lights){
+        if(node->type() == Node::Type::Light){
+            auto* light = dynamic_cast<LightNode*>(node);
+            lights.push_back(light);
+        }
+        for(const auto& child : node->getChildren()){
+            collectLights(child.get(), lights);
+        }
+    }
+
+    void collectVisuals(Node *node, std::vector<VisualNode*>& visuals){
+        if(node->type() == Node::Type::Visual || node->type() == Node::Type::Light){
+            auto* visual = dynamic_cast<VisualNode*>(node);
+            visuals.push_back(visual);
+        }
+        for(const auto& child : node->getChildren()){
+            collectVisuals(child.get(), visuals);
+        }
+    }
+
     void update(){
         //We need to sleep the thread for seconds, or else the fast reads on samples_completed
         //block the other threads (the workers) from executing and we have a slow down
@@ -152,8 +178,8 @@ private:
             for (int j = 0; j < tile_dimensions.x; ++j) {
                 Color pixel_color{0, 0, 0};
                 for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
-                    glm::vec2 random_2D = {randomized::scalar::random(-1, 1), randomized::scalar::random(-1, 1)};
-                    glm::vec2 sample_coords = (tile.getStart() + glm::vec2{j, i} + random_2D) / (tile.getDimensions() * static_cast<float>(tile_number));
+                    Point2D random_2D = {randomized::scalar::random(-1, 1), randomized::scalar::random(-1, 1)};
+                    Point2D sample_coords = (tile.getStart() + glm::vec2{j, i} + random_2D) / (tile.getDimensions() * static_cast<float>(tile_number));
                     Ray r = active_camera->get(sample_coords.x, sample_coords.y);
 
                     Color sample_color = sampler->sample(r);
@@ -174,6 +200,7 @@ private:
     int tile_number = 4;
     CameraNode *active_camera;
     std::shared_ptr<Node> scene;
+    std::shared_ptr<SceneList> scene_list;
     //std::shared_ptr<BVH> bvh;
 
 

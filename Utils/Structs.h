@@ -11,6 +11,8 @@ typedef glm::vec3 Point;
 typedef glm::vec3 Dimension;
 typedef glm::vec3 Direction;
 
+typedef glm::vec2 Point2D;
+
 typedef glm::vec3 Normal;
 
 typedef glm::vec3 UV;
