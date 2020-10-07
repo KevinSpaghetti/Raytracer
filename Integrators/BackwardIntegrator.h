@@ -46,23 +46,25 @@ private:
         //subclasses
         const auto* node = dynamic_cast<const VisualNode*>(intersection.node);
         auto material = node->getMaterial();
+
+        //Direction where the light is going (to the eye)
+        const Ray wo = Ray(intersection.ws_point, -r.getDirection());
+
         Color emitted{0.0, 0.0, 0.0};
         Color incoming{0.0, 0.0, 0.0};
-        if (material->emits(intersection, r)){
-            emitted = material->emit(intersection, r);
+        if (material->emits(intersection, wo)){
+            emitted = material->emit(intersection, wo);
         }
         //If the material does not scatter light than the rendering equation 2nd term is always 0
-        if (!material->scatters(intersection, r)) {
+        if (!material->scatters(intersection, wo)) {
             return emitted;
         }
 
-        Ray scattered = material->scatter(intersection, r);
+        Ray scattered = material->scatter(intersection, wo);
         incoming = trace(scattered, ++ray_depth);
 
         //Direction where the light is coming (to the light)
         const Ray wi = scattered;
-        //Direction where the light is going (to the eye)
-        const Ray wo = Ray(intersection.ws_point, -r.getDirection());
         Color brdf = material->f(intersection, wi, wo);
 
         //Compute the rendering equation with the material parameters

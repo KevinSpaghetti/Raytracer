@@ -39,22 +39,22 @@ public:
         return (1.0f - F) * diffuse + F * specular;
     }
 
-    bool scatters(const Intersection &i, const Ray &incoming) const override {
+    bool scatters(const Intersection &i, const Ray &wo) const override {
         return true;
     }
-    Ray scatter(const Intersection &i, const Ray &incoming) const override {
-        Point reflected = glm::reflect(incoming.getDirection(), i.ws_normal + roughness * randomized::vector::in_unit_sphere());
+    Ray scatter(const Intersection &i, const Ray &wo) const override {
+        Point reflected = glm::reflect(wo.getDirection(), i.ws_normal + roughness * randomized::vector::in_unit_sphere());
         if(roughness > 0.9){
             return Ray(i.ws_point, reflected, Ray::Type::Diffuse);
         }
         return Ray(i.ws_point, reflected, Ray::Type::Specular);
     }
 
-    bool emits(const Intersection &i, const Ray &incoming) const override {
+    bool emits(const Intersection &i, const Ray &wo) const override {
         return false;
     }
-    Color emit(const Intersection &i, const Ray &incoming) const override {
-        return Color();
+    Color emit(const Intersection &i, const Ray &wo) const override {
+        return Color({0.0, 0.0, 0.0});
     }
 
 private:

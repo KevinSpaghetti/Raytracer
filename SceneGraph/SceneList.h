@@ -15,7 +15,23 @@ public:
 
     void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) const override {
         for (const auto object : visuals) {
-            object->hit(r, intersections);
+            Ray t(object->transform_global().pointToObjectSpace(r.getOrigin()),
+                  object->transform_global().directionToObjectSpace(r.getDirection()), r.getType());
+
+            std::vector<Intersection> mesh_intersections;
+            object->getMesh()->intersect(t, mesh_intersections);
+            for(Intersection& is : mesh_intersections){
+                //Push back the object with the coords in object space
+                ObjectIntersection o{};
+                o.point = is.point;
+                o.normal = is.normal;
+                o.ws_point = object->transform_global().pointToWorldSpace(is.point);
+                o.ws_normal = object->transform_global().directionToWorldSpace(is.normal);
+                o.uv = is.uv;
+                o.isFront = is.isFront;
+                o.node = object;
+                intersections.push_back(o);
+            }
         }
     }
 

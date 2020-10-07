@@ -65,7 +65,7 @@ EmptyNode createCornellBox(){
 
     auto spMetal = std::make_shared<VisualNode>(sp1, metal);
     auto spImage = std::make_shared<VisualNode>(sp1, image_mtl);
-    auto spDielectric = std::make_shared<VisualNode>(sp1, dielectric);
+    //auto spDielectric = std::make_shared<VisualNode>(sp1, dielectric);
 
     auto light = std::make_shared<AreaLightNode>(110.0f, 110.0f, Color{1, 1, 1}, 5.0f);
 
@@ -77,11 +77,11 @@ EmptyNode createCornellBox(){
     box->add(std::make_shared<VisualNode>(bottom, white));
     box->add(std::make_shared<VisualNode>(bg, white));
 
-    spMetal->translate({-20, 0, 0});
-    spDielectric->translate({20, 0, 0});
+    spMetal->translate({-20, -30, 0});
+    //spDielectric->translate({20, -10, 0});
 
     spheres->add(spMetal);
-    spheres->add(spDielectric);
+    //spheres->add(spDielectric);
     spheres->add(spImage);
 
     //spheres->rotate({0, 0, 1}, glm::radians(40.0f));
@@ -156,7 +156,7 @@ EmptyNode createSpheres(){
     auto red   = std::make_shared<Lambertian>(Color(.65, .05, .05));
     auto white = std::make_shared<Lambertian>(Color(.73, .73, .73));
     auto green = std::make_shared<Metal>(Color(.12, .45, .15), 0.01f);
-    auto metal = std::make_shared<Metal>(Color(.12, .45, .15), 0.0);
+    auto metal = std::make_shared<Metal>(Color(.12, .45, .15), 0.01f);
     auto dielectric = std::make_shared<Dielectric>(1.5);
 
     auto pbr = std::make_shared<PBRMaterial>(
@@ -167,44 +167,46 @@ EmptyNode createSpheres(){
     pot_geom->buildAccelerationStructure();
     auto model = std::make_shared<VisualNode>(pot_geom, pbr);
 
-    auto smallg = std::make_shared<SphereMesh>(Point{0,0 ,-1}, 0.5f);
-    auto s1 = std::make_shared<VisualNode>(smallg, pbr);
-    auto s2 = std::make_shared<VisualNode>(smallg, green);
+    auto smallg = std::make_shared<SphereMesh>(Point{0,0 ,0}, 0.5f);
+    auto smallghollow = std::make_shared<SphereMesh>(Point{0,0 ,0}, -0.5f);
+    auto s1 = std::make_shared<VisualNode>(smallg, metal);
+    auto s2 = std::make_shared<VisualNode>(smallg, red);
     auto s3 = std::make_shared<VisualNode>(smallg, dielectric);
 
-    auto bigg = std::make_shared<SphereMesh>(Point{0,-100.5 ,-1}, 100.0f);
+    auto bigg = std::make_shared<SphereMesh>(Point{0,-100.5 ,0}, 100.0f);
     auto big = std::make_shared<VisualNode>(bigg, grey);
 
-    //root.add(s1);
-    s2->translate({-1.0, 0, 0});
-    //root.add(s2);
-    s3->translate({1.0, 0, 0});
-    //root.add(s3);
+    EmptyNode n;
 
-    root.add(model);
-    root.add(big);
+    n.add(s1); //metal
+    s2->translate({-1.2, 0, 0});
+    n.add(s2); //lambert
+    s3->translate({1.2, 0, 0});
+    n.add(s3); //dielectric
 
+    //root.add(model);
+    n.add(big);
+    n.translate({0, 0, -1});
+    root.add(std::make_shared<EmptyNode>(n));
     return root;
 }
 
 int main(){
     //TODO: Change parallel implementation
     //TODO: Add IBL
-    //TODO: Improve the OBJ loading method
-    //TODO: Building the bvh
-    //TODO: Implement a physically based brdf
+    //TODO: Fix material
     std::cout << "Creating buffer \n";
     const int width = 500;
     const int height = 500;
     Buffer<Color> color(width, height);
 
-    glm::vec3 lookfrom(0,0,50);
+    glm::vec3 lookfrom(0,0,1.5);
     glm::vec3 lookat(0,0,0);
     auto dist_to_focus = glm::length(lookfrom - lookat);
     auto aperture = 0.1f;
     float aspect_ratio = width / height;
 
-    auto scene = std::make_shared<EmptyNode>(createCornellBox());
+    auto scene = std::make_shared<EmptyNode>(createSpheres());
     std::shared_ptr<CameraNode> camera = std::make_shared<CameraNode>(lookfrom,
                                                                             lookat,
                                                                             consts::up,
@@ -221,7 +223,7 @@ int main(){
     std::cout << "Creating Renderer\n";
 
     Renderer renderer;
-    renderer.pixelsamples() = 5;
+    renderer.pixelsamples() = 50;
     renderer.maxraydepth() = 10;
     renderer.max_depth_material() = std::make_shared<SolidColorMaterial>(Color{0.0, 0.0, 0.0});
     renderer.no_hit_material() = std::make_shared<SkyMaterial>();

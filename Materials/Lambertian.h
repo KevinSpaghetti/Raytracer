@@ -18,18 +18,18 @@ public:
         return albedo * lambert_correction_factor;
     }
 
-    bool scatters(const Intersection &i, const Ray& incoming) const override {
+    bool scatters(const Intersection &i, const Ray& wo) const override {
         return true;
     }
-    Ray scatter(const Intersection &i, const Ray& incoming) const override {
+    Ray scatter(const Intersection &i, const Ray& wo) const override {
         Point direction = randomized::vector::in_unit_sphere();
         return Ray(i.ws_point, direction, Ray::Type::Diffuse);
     }
 
-    bool emits(const Intersection& i, const Ray& incoming) const override {
+    bool emits(const Intersection& i, const Ray& wo) const override {
         return false;
     }
-    Color emit(const Intersection& i, const Ray& incoming) const override {
+    Color emit(const Intersection& i, const Ray& wo) const override {
         return {0.0, 0.0, 0.0};
     }
 

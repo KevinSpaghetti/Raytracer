@@ -15,10 +15,10 @@ public:
         return Color{1.0, 1.0, 1.0};
     }
 
-    bool scatters(const Intersection &i, const Ray &incoming) const override {
+    bool scatters(const Intersection &i, const Ray &wo) const override {
         return true;
     }
-    Ray scatter(const Intersection &i, const Ray& incoming) const override {
+    Ray scatter(const Intersection &i, const Ray& wo) const override {
         float etai;
         if(i.isFront) {
             etai = 1.0f / index;
@@ -26,31 +26,31 @@ public:
             etai = index;
         }
 
-        float cos_theta = fminf(glm::dot(-incoming.getDirection(), i.ws_normal), 1.0);
-        float sin_theta = sqrtf(1.0f - powf(cos_theta, 2));
+        Normal unit_normal = glm::normalize(i.ws_normal);
+        Normal unit_direction = glm::normalize(-wo.getDirection());
 
-        if (etai * sin_theta > 1.0) {
-            Point reflected = glm::reflect(incoming.getDirection(), i.ws_normal);
-            return Ray(i.ws_point, reflected, Ray::Type::Specular);
-        }
-        double reflect_prob = schlick(cos_theta, etai);
-        if (randomized::scalar::random() < reflect_prob){
-            Point reflected = glm::reflect(incoming.getDirection(), glm::normalize(i.ws_normal));
-            return Ray(i.ws_point, reflected, Ray::Type::Specular);
-        }
+        float cos_theta = fminf(glm::dot(-unit_direction, unit_normal), 1.0);
+        float sin_theta = sqrtf(1.0f - cos_theta * cos_theta);
 
-        Point refracted = glm::refract(incoming.getDirection(), i.ws_normal , etai);
-        return Ray(i.ws_point, refracted, Ray::Type::Transmission);
+        bool cannot_refract = etai * sin_theta > 1.0f;
+        Normal direction;
+        if (cannot_refract || schlick(cos_theta, etai) > randomized::scalar::random(0.0f, 1.0f)) {
+            direction = glm::reflect(unit_direction, unit_normal);
+        }else{
+            direction = glm::refract(unit_direction, unit_normal, etai);
+        }
+        return Ray(i.ws_point, direction, Ray::Type::Transmission);
     }
 
-    bool emits(const Intersection& i, const Ray& incoming) const override {
+    bool emits(const Intersection& i, const Ray& wo) const override {
         return false;
     }
-    Color emit(const Intersection& i, const Ray& incoming) const override {
+    Color emit(const Intersection& i, const Ray& wo) const override {
         return {0.0, 0.0, 0.0};
     }
 
 private:
+
     static float schlick(float cosine, float ref_idx) {
         auto r0 = (1-ref_idx) / (1+ref_idx);
         r0 = r0*r0;

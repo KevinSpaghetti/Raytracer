@@ -99,7 +99,6 @@ protected:
 
     std::list<std::shared_ptr<Node>> children;
 };
-
 class EmptyNode : public Node {
 
     Type type() const override {
@@ -132,6 +131,7 @@ public:
             o.ws_point = global.pointToWorldSpace(is.point);
             o.ws_normal = global.directionToWorldSpace(is.normal);
             o.uv = is.uv;
+            o.isFront = is.isFront;
             o.node = this;
             intersections.push_back(o);
         }

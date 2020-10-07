@@ -61,6 +61,7 @@ public:
     }
     //One intersection enters and one exits the cube
     bool getHitPoint(const Ray& r, float& tmin, float& tmax) const {
+
         tmin = (min.x - r.getOrigin().x) / r.getDirection().x;
         tmax = (max.x - r.getOrigin().x) / r.getDirection().x;
 

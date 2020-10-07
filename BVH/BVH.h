@@ -106,6 +106,7 @@ public:
                 o.ws_point = node->transform_global().pointToWorldSpace(is.point);
                 o.ws_normal = node->transform_global().directionToWorldSpace(is.normal);
                 o.uv = is.uv;
+                o.isFront = is.isFront;
                 o.node = node;
                 intersections.push_back(o);
             }

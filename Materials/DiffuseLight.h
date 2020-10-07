@@ -14,18 +14,18 @@ public:
         return Color{0.0, 0.0, 0.0};
     }
 
-    bool scatters(const Intersection &i, const Ray &incoming) const override {
+    bool scatters(const Intersection &i, const Ray& wo) const override {
         return false;
     }
-    Ray scatter(const Intersection &i, const Ray &incoming) const override {
+    Ray scatter(const Intersection &i, const Ray& wo) const override {
         return Ray();
     }
 
-    bool emits(const Intersection& i, const Ray& incoming) const override {
+    bool emits(const Intersection& i, const Ray& wo) const override {
         return true;
     };
-    Color emit(const Intersection& i, const Ray& incoming) const override {
-        return c * intensity;
+    Color emit(const Intersection& i, const Ray& wo) const override {
+        return c * intensity; //TODO: emit light based on distance and light falloff
     };
 
 private:
