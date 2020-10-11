@@ -19,7 +19,6 @@
 #include "Integrators/BackwardIntegrator.h"
 #include "Integrators/NormalDebugIntegrator.h"
 #include "SceneGraph/SceneList.h"
-#include "Integrators/BackwardIntegratorMIS.h"
 
 class Renderer {
 private:
@@ -111,7 +110,7 @@ public:
         //Thread that updates the stats about the samples completed
         auto updater = std::thread(&Renderer::update, this);
         for (Tile<Color> tile : tiles){
-            workers.emplace_back(std::thread(&Renderer::trace_tile, this, tile));
+            workers.emplace_back(std::thread(&Renderer::render_tile, this, tile));
         }
         for (std::thread& worker : workers){
             worker.join();
@@ -149,7 +148,6 @@ private:
             collectLights(child.get(), lights);
         }
     }
-
     void collectVisuals(Node *node, std::vector<VisualNode*>& visuals){
         if(node->type() == Node::Type::Visual || node->type() == Node::Type::Light){
             auto* visual = dynamic_cast<VisualNode*>(node);
@@ -171,7 +169,7 @@ private:
         updater(render_info);
     }
 
-    void trace_tile(Tile<Color> tile){
+    void render_tile(Tile<Color> tile){
         glm::vec2 tile_dimensions = tile.getDimensions();
         for (int i = 0; i < tile_dimensions.y; ++i) {
             for (int j = 0; j < tile_dimensions.x; ++j) {

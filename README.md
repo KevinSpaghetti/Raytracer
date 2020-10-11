@@ -2,18 +2,27 @@
 Per usare il raytracer è necessario creare un istanza della classe Renderer e chiamare il metodo .render() che 
 utilizza la telecamera e la scena passata per eseguire il render all'interno del buffer color, che deve essere stato
 precedentemente creato.
+La funzione render prende un puntatore al nodo della camera nello scene graph, è possibile così applicare le
+trasformazioni alla camera proprio come a tutti gli altri nodi della scena.
 
-## Creazione della scena
-La scena viene costruita creando una struttura gerarchica usando la classe Node che permette di generare
-un nodo vuoto (Node()) o un nodo con una geometria e un materiale (Node(geometry, material)).
-Ogni nodo e la mesh contenuta devono fornire dei metodi che permettono di controllare
-se la mesh interseca il raggio (rispettivamente hit per i nodi e intersect per le mesh contenute nei nodi)
+## Scene Graph
+La scena viene descritta costruendo uno scene graph, una gerarchia di nodi, ogni nodo può essere:
+ - Node: classe astratta che fornisce una base per implementare gli altri tipi di nodi
+    - EmptyNode: Nodo vuoto, usato per raggruppare oggetti e applicarvi trasformazioni
+    - CameraNode: Nodo che rappresenta una camera da cui otterremo i raggi che dobbiamo tracciare
+    - VisualNode: Nodo che contiene una mesh e un materiale che vengono usati durante il processo di raytracing
+    - LightNode: classe astratta che rappresenta una generica luce
+        - AreaLightNode: classe che rappresenta una luce che proviene da un'area rettangolare
+        - SphereLightNode: come AreaLightNode ma la luce proviene da una sfera
 
 ## Trasformazioni
 Le trasformazioni sono implementate applicando l'inverso della trasformazione dell'oggetto al raggio, soluzione
 scelta poichè permette di calcolare le intersezioni raggio-mesh sempre in object space.
 Le intersezioni trovate vengono poi riportate in world space applicando la trasformazione dell'oggetto
 (l'inversa dell'inversa).
+Ogni nodo mantiene una trasformazione globale e una trasformazione locale composta da traslazioni, rotazioni e scalature (applicate in 
+ordine SRT), il renderer prima di eseguire l'algoritmo calcola la trasformazione globale per ogni nodo discendendo
+nello scene graph.
 
 ## Metodi di accelerazione
 Ogni mesh può implementare i suoi metodi di accelerazione.
@@ -25,6 +34,7 @@ una struttura di accelerazione (ExhaustiveSearch)
 
 ## Il metodo render
 Il metodo render:
+- Calcola le trasformazioni globali di ogni nodo dello scene graph
 - crea la BVH
 - Inizializza l'integratore
 - divide il buffer in Tile e assegna un thread a ciascuna Tile, 
@@ -46,17 +56,18 @@ campionando i materiali per ogni intersezione.
 
 ## Materiali
 Nel renderer sono disponibili materiali di base (Lambertian, Metal, Light, Dielectric).
-Per creare nuovi materiali è necessario subclassare la classe Material e implementare le 2 funzioni:
-- scatter: Ritorna vero se il materiale quando viene colpito dalla luce genera dei raggi in uscita(riflessione o rifrazione), falso altrimenti.
-- color: Ritorna il colore del materiale quando viene colpito dalla luce, il colore della
-luce proveniente viene passato nella variabile incoming, se il materiale non genera raggi quando colpito dalla luce
-questa variabile sarà sempre non definita.
+Per creare nuovi materiali è necessario subclassare la classe Material e implementare le funzioni:
+- f: La BRDF del materiale
+- scatters: Ritorna vero se il materiale genera dei raggi in uscita(riflessione o rifrazione) quando viene colpito dalla luce, falso altrimenti.
+- emits: Ritorna vero se il materiale emette luce, falso altrimenti
+- scatter: genera il raggio disperso dalla superfice dopo un'interazione con la luce
+- emit: Ritorna la luce emessa dal materiale
 
 ![NormalDebugIntegrator](./images/BackwardIntegrator.png)
 
 ## Updater
-è possibile comunicare al renderer di chiamare una funzione per mettere in output statistiche sul processo di rendering,
-chiamando la funzione set_updater(interval, function) il renderer chiamerà function ogni interval millisecondi passandogli
+è possibile definire una funzione per mettere in output statistiche sul processo di rendering che il renderer chiamerà ogni
+intervallo di tempo chiamando la funzione set_updater(interval, function) il renderer chiamerà function ogni interval millisecondi passandogli
 un parametro di tipo RenderInfo con i valori del renderer (ad esempio sample completati su sample necessari).
 
 ## Output

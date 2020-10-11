@@ -53,7 +53,7 @@ add_executable(Test
         Utils/PDF.h
         SceneGraph/ImportanceSamplingEnabled.h
         SceneGraph/SceneList.h
-        Integrators/BackwardIntegratorMIS.h Materials/PropsBasedObject.h Materials/PBRMaterial.h)
+        Materials/PropsBasedObject.h Materials/PBRMaterial.h)
 
 execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
 execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)

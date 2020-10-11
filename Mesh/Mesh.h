@@ -18,7 +18,8 @@ public:
     Mesh() {}
 
     //To allow the empty mesh
-    virtual void intersect(const Ray& r, std::vector<Intersection>& intersections) const override {
+    virtual void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const override {
+        n_intersections = 0;
         return ;
     }
 

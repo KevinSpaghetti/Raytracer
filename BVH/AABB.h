@@ -9,7 +9,7 @@
 #include "../Geom/IntersectTestable.h"
 #include "BoundingBox.h"
 
-class AABB : public BoundingBox, public IntersectTestable {
+class AABB : public BoundingBox {
 public:
     //Default constructor is a bounding box which never gets hit
     //Better than -inf, +inf bounding box because we can start
@@ -109,30 +109,24 @@ public:
         return min + (max - min) / 2.0f;
     }
 
-    void intersect(const Ray &r, std::vector<Intersection>& intersections) const override {
-
-        float tmin, tmax;
-        if(getHitPoint(r, tmin, tmax)){
-            Point ip = r.getOrigin() + r.getDirection() * tmin;
-            Point box_center = max + ((max - min)/2.0f);
-            Normal nm = box_center - ip;
-            intersections.push_back({
-                ip, //Intersection point
-                nm,
-                {0, 0, 0}
-            });
-            ip = r.getOrigin() + r.getDirection() * tmax;
-            nm = box_center - ip;
-            intersections.push_back({
-                ip, //Intersection point
-                nm,
-                {0, 0, 0}
-            });
-        }
-    }
-
 private:
     Point min;
     Point max;
 };
 
+AABB applyTransform(AABB box, GlobalTransform t){
+    Dimension extent = box.getMax() - box.getMin();
+    Point min = box.getMin();
+    Point max = box.getMax();
+    std::vector<Point> points({
+              t.pointToWorldSpace(min),
+              t.pointToWorldSpace(min + Point{extent.x, 0.0f, 0.0f}),
+              t.pointToWorldSpace(min + Point{0.0f, extent.y, 0.0f}),
+              t.pointToWorldSpace(min + Point{0.0f, 0.0f, extent.z}),
+              t.pointToWorldSpace(max - Point{extent.x, 0.0f, 0.0f}),
+              t.pointToWorldSpace(max - Point{0.0f, extent.y, 0.0f}),
+              t.pointToWorldSpace(max - Point{0.0f, 0.0f, extent.z}),
+              t.pointToWorldSpace(max)
+      });
+    return AABB(points);
+}

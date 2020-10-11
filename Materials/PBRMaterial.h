@@ -43,7 +43,7 @@ public:
         return true;
     }
     Ray scatter(const Intersection &i, const Ray &wo) const override {
-        Point reflected = glm::reflect(wo.getDirection(), i.ws_normal + roughness * randomized::vector::in_unit_sphere());
+        Point reflected = glm::reflect(-wo.getDirection(), i.ws_normal + roughness * randomized::vector::in_unit_sphere());
         if(roughness > 0.9){
             return Ray(i.ws_point, reflected, Ray::Type::Diffuse);
         }

@@ -17,8 +17,8 @@ public:
         return true;
     }
     Ray scatter(const Intersection &i, const Ray& incoming) const override {
-        Point direction = i.ws_normal + randomized::vector::unit_vector();
-        return Ray(i.ws_point, direction);
+        Point direction = randomized::vector::in_unit_hemisphere(i.ws_normal);
+        return Ray(i.ws_point, direction, Ray::Type::Diffuse);
     }
 
     virtual bool emits(const Intersection& i, const Ray& incoming) const override {

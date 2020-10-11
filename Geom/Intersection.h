@@ -11,11 +11,10 @@
 #include "../Utils/Structs.h"
 
 struct Intersection {
-    //TODO: Add point normal in object and world space
     //Object Space
     Vertex point{}; //Point in which the ray hits the mesh
     Normal normal{}; //Normal of the point in which the ray hits the mesh
-
+    float t; //distance from origin of the ray to the point of intersection
     //Both for object and for world space
     UV uv{};
 

@@ -14,15 +14,14 @@ public:
     Lambertian(const Color a) : albedo(a) {}
 
     Color f(const Intersection &i, const Ray& wi, const Ray& wo) const override {
-        float lambert_correction_factor = glm::abs(glm::dot(wi.getDirection(), glm::normalize(i.ws_normal)));
-        return albedo * lambert_correction_factor;
+        return albedo;
     }
 
     bool scatters(const Intersection &i, const Ray& wo) const override {
         return true;
     }
     Ray scatter(const Intersection &i, const Ray& wo) const override {
-        Point direction = randomized::vector::in_unit_sphere();
+        Point direction = randomized::vector::in_unit_hemisphere(i.ws_normal);
         return Ray(i.ws_point, direction, Ray::Type::Diffuse);
     }
 

@@ -6,6 +6,8 @@
 
 #include "Mesh.h"
 
+//TODO: test uvs
+
 //Class to represent an Axis Aligned rect
 class AARectMesh : public Mesh {
 public:
@@ -22,7 +24,7 @@ public:
             width(width),
             height(height) {}
 
-    void intersect(const Ray &r, std::vector<Intersection>& intersections) const override {
+    void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const override {
         if(type == XZ){
             float t;
             bool isFront;
@@ -35,8 +37,9 @@ public:
                 if(ip.z < center.z - height/2.0f || ip.z > center.z + height/2.0f){
                     return ;
                 }
-                //TODO: implement uvs
-                intersections.push_back(Intersection{ip, normal, {0, 0, 0}, isFront});
+                UV uvs = ((ip - center) - Point{width, height, 0.0}) / Point{width, height, 0.0};
+                n_intersections = 1;
+                intersections[0] = {ip, normal, t, uvs, isFront};
             }
         }else{
             return ;

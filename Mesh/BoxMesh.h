@@ -11,17 +11,20 @@ public:
 
     BoxMesh(Point min, Point max) : min(min), max(max) {}
 
-    virtual void intersect(const Ray& r, std::vector<Intersection>& intersections) const override {
+    virtual void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const override {
 
+        //points in which the ray enters and exits the box
         float tmin, tmax;
         if(getHitPoint(r, tmin, tmax)){
+            n_intersections = 2;
+
             Point ip = r.getOrigin() + r.getDirection() * tmin;
             Point box_center = max + ((max - min)/2.0f);
             Normal nm = glm::normalize(ip - box_center);
-            intersections.push_back(Intersection{ip, nm, {0, 0, 0}, true});
+            intersections[0] = {ip, nm, tmin, {0, 0, 0}, true};
             ip = r.getOrigin() + r.getDirection() * tmax;
             nm = glm::normalize(ip - box_center);
-            intersections.push_back(Intersection{ip, nm, {0, 0, 0}, false});
+            intersections[1] = {ip, nm, tmax, {0, 0, 0}, false};
         }
     }
 

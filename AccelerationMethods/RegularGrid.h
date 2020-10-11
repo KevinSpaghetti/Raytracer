@@ -80,7 +80,7 @@ public:
 
     }
 
-    void intersect(const Ray& r, std::vector<Intersection>& intersections) const {
+    void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const {
         if(!box.isHit(r)){
             return ;
         }
@@ -116,13 +116,23 @@ public:
 
         bool finished = false;
 
+        n_intersections = 0;
         while (!finished) {
             int id = cell.z * resolution.x * resolution.y + cell.y * resolution.x + cell.x;
+            Intersection closest{r.at(consts::infinity)};
             for (TriangleInfo t : cells[id].overlaps) {
                 Intersection i;
                 if(data->test(r, t.tri, i)){
-                    intersections.emplace_back(i);
+                    if(glm::length(i.point - r.getOrigin()) < glm::length(closest.point - r.getOrigin())){
+                        closest = i;
+                        n_intersections = 1;
+                    }
                 }
+            }
+            if(n_intersections > 0){
+                n_intersections = 1;
+                intersections[0] = closest;
+                return ;
             }
             int k = ((nextCrossingT[0] < nextCrossingT[1]) << 2) +
                     ((nextCrossingT[0] < nextCrossingT[2]) << 1) +

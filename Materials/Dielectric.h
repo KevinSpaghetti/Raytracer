@@ -9,10 +9,10 @@
 
 class Dielectric : public Material{
 public:
-    Dielectric(const float index) : index(index) {}
+    Dielectric(const Color albedo, const float index) : albedo(albedo), index(index) {}
 
     Color f(const Intersection &i, const Ray& wi, const Ray& wo) const override {
-        return Color{1.0, 1.0, 1.0};
+        return albedo;
     }
 
     bool scatters(const Intersection &i, const Ray &wo) const override {
@@ -57,5 +57,6 @@ private:
         return r0 + (1-r0)*powf((1 - cosine), 5.0f);
     }
 
+    Color albedo;
     float index;
 };

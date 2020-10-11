@@ -14,7 +14,6 @@ class ColorBufferFormatPPM : public ColorBufferFormat {
 public:
     ColorBufferFormatPPM(Buffer<Color> buffer) : buffer(buffer){};
 
-    //TODO: Refactor to use a stream
     std::string serialize() {
         std::ostringstream result;
         result << "P3" << "\n";

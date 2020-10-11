@@ -25,11 +25,10 @@ public:
     BackwardIntegrator(Hittable* scene, SceneSamplerConfiguration  configuration) : scene(scene), configuration(std::move(configuration)) {}
 
     Color sample(const Ray &r) const override {
-        return trace(r, 0);
+        return glm::clamp(trace(r, 0), Point(0.0f), Point(1.0f));
     }
 
 private:
-    //Iterative version is more extensible
     Color trace(const Ray& r, int ray_depth) const {
 
         if(ray_depth > configuration.max_ray_depth){
@@ -51,24 +50,23 @@ private:
         const Ray wo = Ray(intersection.ws_point, -r.getDirection());
 
         Color emitted{0.0, 0.0, 0.0};
-        Color incoming{0.0, 0.0, 0.0};
         if (material->emits(intersection, wo)){
             emitted = material->emit(intersection, wo);
         }
         //If the material does not scatter light than the rendering equation 2nd term is always 0
-        if (!material->scatters(intersection, wo)) {
-            return emitted;
+        Ray scattered{};
+        Color incoming{0.0, 0.0, 0.0};
+        if (material->scatters(intersection, wo)) {
+            scattered = material->scatter(intersection, wo);
+            incoming = trace(scattered, ++ray_depth);
         }
-
-        Ray scattered = material->scatter(intersection, wo);
-        incoming = trace(scattered, ++ray_depth);
 
         //Direction where the light is coming (to the light)
         const Ray wi = scattered;
         Color brdf = material->f(intersection, wi, wo);
-
         //Compute the rendering equation with the material parameters
-        return emitted + (brdf * incoming);
+        float lambert_law = abs(glm::dot(wi.getDirection(), glm::normalize(intersection.ws_normal)));
+        return emitted + (brdf * incoming * lambert_law);
     }
 
 protected:

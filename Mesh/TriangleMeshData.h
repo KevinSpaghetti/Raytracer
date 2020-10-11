@@ -32,7 +32,6 @@ struct TriangleMeshData {
         float u, v;
         bool isFrontFace;
         if(intersections::ray_triangle(r, v1, v2, v3, d, u, v, isFrontFace)){
-            //TODO: Check the normalization of all the directions
             //Interpolate the informations from all the vertices
             Vertex ip{0, 0, 0};
             Normal nm{0, 0, 0};
@@ -40,7 +39,7 @@ struct TriangleMeshData {
 
             //Worse method, see raytracing gems 3
             //Gets progressively worse with more camera distance
-            //ip = r.getOrigin() + glm::normalize(r.getDirection()) * t;
+            //ip = r.getOrigin() + glm::normalize(r.getDirection()) * d;
             ip = (1.0f-u-v) * v1 + u * v2 + v * v3; //Does not depend on the direction normalization
             //Check if the normals and uv are present before adding
             if(!normals.empty()){
@@ -60,6 +59,7 @@ struct TriangleMeshData {
             i = Intersection{
                 ip,
                 nm,
+                d,
                 uv,
                 isFrontFace
             };

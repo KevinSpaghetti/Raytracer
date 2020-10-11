@@ -19,7 +19,7 @@ public:
     }
     Ray scatter(const Intersection &i, const Ray &wo) const override {
         Normal unit_normal = glm::normalize(i.ws_normal);
-        Point reflected = glm::reflect(-wo.getDirection(), unit_normal + fuzziness * randomized::vector::in_unit_sphere());
+        Point reflected = glm::reflect(-wo.getDirection(), glm::normalize(unit_normal + fuzziness * randomized::vector::in_unit_sphere()));
         return Ray(i.ws_point, reflected, Ray::Type::Specular);
     }
 

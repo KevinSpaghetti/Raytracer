@@ -10,8 +10,6 @@
 #include "../Utils/Structs.h"
 #include "ColorBufferFormat.h"
 
-//TODO: Add the ability to output more than colors
-
 class FileRenderOutput : public RenderOutput {
 public:
     FileRenderOutput(std::string filename, std::string base_path = "./") : filename(filename), base_path(base_path) {};

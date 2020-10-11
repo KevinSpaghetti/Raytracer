@@ -17,7 +17,7 @@ public:
     //wo: direction of outgoing light (from the point to the eye)
     //wi: direction of incoming light (from emission point to surface)
 
-
+    //If the material does not refract the wi ray will be undefined
     virtual Color f(const Intersection &i, const Ray& wi, const Ray& wo) const = 0;
 
     //Return true if the ray scatters

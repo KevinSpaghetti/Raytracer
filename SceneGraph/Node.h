@@ -17,6 +17,7 @@
 #include "../Materials/DiffuseLight.h"
 #include "ImportanceSamplingEnabled.h"
 #include "../Utils/Random.h"
+#include "../Mesh/SphereMesh.h"
 
 
 class Node : public Hittable {
@@ -121,17 +122,19 @@ public:
         Ray t(global.pointToObjectSpace(r.getOrigin()),
               global.directionToObjectSpace(r.getDirection()), r.getType());
 
-        std::vector<Intersection> mesh_intersections;
-        mesh->intersect(t, mesh_intersections);
-        for(Intersection& is : mesh_intersections){
+        std::array<Intersection, 2> mesh_intersections;
+        int n_ins;
+        mesh->intersect(t, mesh_intersections, n_ins);
+        for(auto is = mesh_intersections.begin(); is != mesh_intersections.begin() + n_ins; ++is){
             //Push back the object with the coords in object space
             ObjectIntersection o{};
-            o.point = is.point;
-            o.normal = is.normal;
-            o.ws_point = global.pointToWorldSpace(is.point);
-            o.ws_normal = global.directionToWorldSpace(is.normal);
-            o.uv = is.uv;
-            o.isFront = is.isFront;
+            o.point = is->point;
+            o.normal = is->normal;
+            o.ws_point = global.pointToWorldSpace(is->point);
+            o.ws_normal = global.directionToWorldSpace(is->normal);
+            o.uv = is->uv;
+            o.t = is->t;
+            o.isFront = is->isFront;
             o.node = this;
             intersections.push_back(o);
         }
@@ -206,7 +209,33 @@ protected:
 
     Point center;
 };
-//TODO: Integrate the position and rotation of the camera into the get function
+class SphereLightNode : public LightNode {
+public:
+    //Area light node is a special type of visual node used in importance sampling
+    SphereLightNode(const float radius, const Color color, const float intensity)
+            : LightNode(std::make_shared<SphereMesh>(Point{0, 0, 0}, radius),
+                        std::make_shared<DiffuseLight>(color, intensity)),
+              radius(radius),
+              center({0, 0, 0}) {}
+
+    Ray randomPoint(const Point& origin) const override {
+        auto random_point = randomized::vector::in_unit_sphere() * radius;
+        random_point = global.pointToWorldSpace(random_point);
+        //Set the ray as a shadow ray
+        return Ray(origin, glm::normalize(random_point - origin), Ray::Type::Shadow);
+    }
+
+    Color random(const Point &origin) const override {
+        return {0, 0, 0};
+    }
+
+
+protected:
+    float radius;
+
+    Point center;
+};
+
 class CameraNode : public Node {
 public:
     CameraNode(Point lookfrom, Point lookat, Normal up, float vfov, float aspect_ratio, float aperture, float focus_dist) {
@@ -230,9 +259,12 @@ public:
     Ray get(float s, float t) const {
         //vec3 rd = lens_radius * randomized::vector::in_unit_disk();
         Point offset = {0, 0, 0}; //u * rd.x + v * rd.y;
+
         const Point r_origin = origin + offset;
         const Point r_direction = upper_left_corner + s*horizontal - t*vertical - origin - offset;
-        return Ray(r_origin, r_direction, Ray::Type::Camera);
+        return Ray(global.pointToWorldSpace(r_origin),
+                   global.directionToWorldSpace(r_direction),
+                   Ray::Type::Camera);
     }
 
     Type type() const override {

@@ -7,6 +7,8 @@
 #include "../Mesh/Mesh.h"
 #include "../BVH/Boxable.h"
 
+//TODO: test uvs
+
 //Represents an infinite plane
 class PlaneMesh : public Mesh, public CanQueryForHits {
 public:
@@ -24,24 +26,28 @@ public:
         return AABB(min, max);
     }
 
-    void intersect(const Ray& r, std::vector<Intersection>& intersections) const override {
+    void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const override {
         float t = 0.0f;
         bool isFront = true;
         if(intersections::ray_plane(r, center, normal, t, isFront)){
-            intersections.push_back({
+            UV uvs = r.at(t) - center;
+            n_intersections = 1;
+            intersections[0] = {
                     r.at(t),
                     normal,
-                    {0, 0, 0}, //TODO: implement uvs
+                    t,
+                    uvs,
                     isFront
-            });
+            };
         }
     }
 
     //Do not respect tmin with bboxes collision
     bool isHit(const Ray &r) const override {
-        std::vector<Intersection> ins;
-        intersect(r, ins);
-        return ins.size() > 0;
+        std::array<Intersection, 2> ins;
+        int n_hits = 0;
+        intersect(r, ins, n_hits);
+        return n_hits > 0;
     }
 
 public:
