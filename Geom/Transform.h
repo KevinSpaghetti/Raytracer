@@ -19,25 +19,11 @@ public:
     GlobalTransform() : mTransform(glm::mat4(1.0f)),
                         mInverse(glm::mat4(1.0f)) {}
 
-    virtual void translate(glm::vec3 vector){
-        mTransform = glm::translate(mTransform, vector);
-        update();
-    }
-    virtual void scale(glm::vec3 axis){
-        mTransform = glm::scale(mTransform, axis);
-        update();
-    }
-    virtual void rotate(glm::vec3 axis, float radians){
-        mTransform = glm::rotate(mTransform, radians, axis);
-        update();
-    }
-
     //Clear all the transforms applied
     virtual void clear(){
         mTransform = glm::mat4(1.0f);
         mInverse = glm::mat4(1.0f);
     }
-
 
     static GlobalTransform concat(const GlobalTransform& t1, const GlobalTransform& t2){
         GlobalTransform t;
@@ -46,18 +32,20 @@ public:
         return t;
     }
 
-    glm::vec3 pointToObjectSpace(glm::vec3 vector) const {
-        return mInverse * glm::vec4(vector, 1.0f);
-    }
-    glm::vec3 directionToObjectSpace(glm::vec3 vector) const {
-        return glm::normalize(glm::transpose(mInverse) * glm::vec4(vector, 0.0f));
-    }
-
     glm::vec3 pointToWorldSpace(glm::vec3 vector) const {
-        return mTransform * glm::vec4(vector, 1.0f);
+        glm::vec4 result = mTransform * glm::vec4(vector, 1.0f);
+        return result;
     }
     glm::vec3 directionToWorldSpace(glm::vec3 vector) const {
-        return glm::normalize(glm::transpose(mTransform) * glm::vec4(vector, 0.0f));
+        glm::vec4 result = glm::transpose(mTransform) * glm::vec4(vector, 0.0f);
+        return glm::normalize(result);
+    }
+    glm::vec3 pointToObjectSpace(glm::vec3 vector) const {
+        return glm::vec4(vector, 1.0f) * glm::transpose(mInverse);
+    }
+    glm::vec3 directionToObjectSpace(glm::vec3 vector) const {
+        glm::vec4 result = glm::vec4(vector, 0.0f) * glm::transpose(mInverse);
+        return glm::normalize(result);
     }
 
 private:
@@ -79,18 +67,24 @@ public:
     LocalTransform() : GlobalTransform(),
                   mTranslate(glm::mat4(1.0f)),
                   mScale(glm::mat4(1.0f)),
-                  mRotate(glm::mat4(1.0f)) {}
+                  mRotate(glm::mat4(1.0f)),
+                  mTranslateInverse(glm::mat4(1.0f)),
+                  mRotateInverse(glm::mat4(1.0f)),
+                  mScaleInverse(glm::mat4(1.0f)){}
 
-    void translate(glm::vec3 vector) override {
+    void translate(glm::vec3 vector) {
         mTranslate = glm::translate(glm::mat4(1.0f), vector);
+        mTranslateInverse = glm::translate(glm::mat4(1.0f), -vector);
         update();
     }
-    void scale(glm::vec3 axis) override {
+    void scale(glm::vec3 axis) {
         mScale = glm::scale(glm::mat4(1.0f), axis);
+        mScaleInverse = glm::scale(1.0f / axis);
         update();
     }
-    void rotate(glm::vec3 axis, float radians) override {
+    void rotate(glm::vec3 axis, float radians){
         mRotate = glm::rotate(glm::mat4(1.0f), radians, axis);
+        mRotateInverse = glm::rotate(glm::mat4(1.0f), -radians, axis);
         update();
     }
 
@@ -119,4 +113,8 @@ protected:
     glm::mat4 mTranslate;
     glm::mat4 mScale;
     glm::mat4 mRotate;
+
+    glm::mat4 mTranslateInverse;
+    glm::mat4 mScaleInverse;
+    glm::mat4 mRotateInverse;
 };

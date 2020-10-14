@@ -82,7 +82,9 @@ public:
 
     //Compute all the node's global transforms
     static void computeGlobalTransforms(Node* root, GlobalTransform parent_global = GlobalTransform()){
-        root->set_transform_global(GlobalTransform::concat(parent_global, root->transform_local()));
+        auto lcl = root->transform_local();
+
+        root->set_transform_global(GlobalTransform::concat(parent_global, lcl));
         auto children = root->getChildren();
         for (const auto& child : children) {
             computeGlobalTransforms(child.get(), root->transform_global());
@@ -181,7 +183,7 @@ class AreaLightNode : public LightNode {
 public:
     //Area light node is a special type of visual node used in importance sampling
     AreaLightNode(const float width, const float height, const Color color, const float intensity)
-        : LightNode(std::make_shared<AARectMesh>(AARectMesh::Axis::XZ, Point{0, 0, 0}, width, height),
+        : LightNode(std::make_shared<AARectMesh>(AARectMesh::Axis::XZ, Point{0, 0, 0}, Normal{0, -1, 0}, width, height),
                     std::make_shared<DiffuseLight>(color, intensity)),
           width(width),
           height(height),
@@ -211,9 +213,8 @@ protected:
 };
 class SphereLightNode : public LightNode {
 public:
-    //Area light node is a special type of visual node used in importance sampling
     SphereLightNode(const float radius, const Color color, const float intensity)
-            : LightNode(std::make_shared<SphereMesh>(Point{0, 0, 0}, radius),
+            : LightNode(std::make_shared<SphereMesh>(radius),
                         std::make_shared<DiffuseLight>(color, intensity)),
               radius(radius),
               center({0, 0, 0}) {}
@@ -235,7 +236,6 @@ protected:
 
     Point center;
 };
-
 class CameraNode : public Node {
 public:
     CameraNode(Point lookfrom, Point lookat, Normal up, float vfov, float aspect_ratio, float aperture, float focus_dist) {

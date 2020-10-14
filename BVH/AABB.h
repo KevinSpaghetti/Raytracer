@@ -29,6 +29,9 @@ public:
                 max[i] = std::max(max[i], v[i]);
             }
         }
+        min -= Point{consts::epsilon, consts::epsilon, consts::epsilon};
+        max += Point{consts::epsilon, consts::epsilon, consts::epsilon};
+
     }
     //Construct a bounding box from the two passed
     AABB(AABB a, AABB b){
@@ -128,5 +131,6 @@ AABB applyTransform(AABB box, GlobalTransform t){
               t.pointToWorldSpace(max - Point{0.0f, 0.0f, extent.z}),
               t.pointToWorldSpace(max)
       });
+
     return AABB(points);
 }

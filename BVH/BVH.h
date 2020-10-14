@@ -12,19 +12,24 @@ class BVH : public Hittable {
 public:
 
     BVH(std::vector<VisualNode*> nodes){
+        //Build this node bounding box
+        box = AABB();
+        for (const auto& n : nodes) {
+            //Transform the bounding box in world space
+            //(Need to reconstruct if its an AABB for rotations)
+            AABB object_space_box = n->getSurroundingBox();
+            GlobalTransform node_transform = n->transform_global();
+            AABB child_box = applyTransform(object_space_box, node_transform);
+            box.grow(child_box);
+        }
 
         if(nodes.size() == 1){
-            box = applyTransform(nodes[0]->getSurroundingBox(), nodes[0]->transform_global());
             node = nodes[0];
             left = nullptr;
             right = nullptr;
             return ;
         }
         if(nodes.size() == 2){
-            AABB b1 = applyTransform(nodes[0]->getSurroundingBox(), nodes[0]->transform_global());
-            AABB b2 = applyTransform(nodes[1]->getSurroundingBox(), nodes[1]->transform_global());
-            box = b1;
-            box.grow(b2);
             node = nullptr;
             left = std::make_unique<BVH>(std::vector<VisualNode*>({nodes[0]}));
             right = std::make_unique<BVH>(std::vector<VisualNode*>({nodes[1]}));
@@ -32,14 +37,6 @@ public:
         }
 
         node = nullptr;
-        //Build this node bounding box
-        box = AABB();
-        for (const auto& n : nodes) {
-            //Transform the bounding box in world space
-            //(Need to reconstruct if its an AABB for rotations)
-            AABB child_box = applyTransform(n->getSurroundingBox(), n->transform_global());
-            box = AABB(box, child_box);
-        }
         //Decide which nodes need to go in the left and right bins
         int axis = static_cast<int>(randomized::scalar::random(0, 2)); //Split along a random axis
         std::sort(nodes.begin(), nodes.end(), [axis](const VisualNode* n1, const VisualNode* n2) -> bool {
@@ -72,8 +69,9 @@ public:
 
         if(node != nullptr){
             //Apply the transform to the ray
-            Ray t(node->transform_global().pointToObjectSpace(r.getOrigin()),
-                  node->transform_global().directionToObjectSpace(r.getDirection()),
+            GlobalTransform gl = node->transform_global();
+            Ray t(gl.pointToObjectSpace(r.getOrigin()),
+                  gl.directionToObjectSpace(r.getDirection()),
                   r.getType());
 
             std::array<Intersection, 2> mesh_intersections;

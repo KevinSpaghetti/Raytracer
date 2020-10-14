@@ -29,7 +29,7 @@ public:
     }
 
     AABB getSurroundingBox() const override {
-        return Mesh::getSurroundingBox();
+        return AABB(min, max);
     }
 
 private:

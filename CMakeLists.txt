@@ -40,6 +40,7 @@ add_executable(Test
         Mesh/TriangleMeshData.h
         BVH/BoundingBox.h
         Mesh/PlaneMesh.h
+        Mesh/BoxMesh.h
         Materials/Lambertian.h
         RenderInfo.h
         Materials/Metal.h
@@ -53,7 +54,7 @@ add_executable(Test
         Utils/PDF.h
         SceneGraph/ImportanceSamplingEnabled.h
         SceneGraph/SceneList.h
-        Materials/PropsBasedObject.h Materials/PBRMaterial.h)
+        Materials/PropsBasedObject.h Materials/PBRMaterial.h Integrators/BackwardIntegratorMIS.h Integrators/DebugIntegrator.h)
 
 execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
 execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)

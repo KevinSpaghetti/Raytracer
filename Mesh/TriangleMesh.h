@@ -40,10 +40,7 @@ public:
 
         //Add some thickness to the box in case the triangles lie on the same plane
         //the box would be with 0 thickness and the ray would never hit it
-        const Point small_less{-consts::epsilon, -consts::epsilon, -consts::epsilon};
-        const Point small_more{consts::epsilon, consts::epsilon, consts::epsilon};
-        const AABB tmp_bbox(small_less, small_more);
-        return AABB(obj_bbox, tmp_bbox);
+        return AABB(obj_bbox);
     }
     AABB getSurroundingBox() const override {
         return box;

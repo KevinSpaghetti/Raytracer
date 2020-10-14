@@ -18,9 +18,10 @@ public:
         XY  //Not implemented
     };
 
-    AARectMesh(const Axis type, const Point center, const float width, const float height) :
+    AARectMesh(const Axis type, const Point center, const Normal normal, const float width, const float height) :
             type(type),
             center(center),
+            normal(normal),
             width(width),
             height(height) {}
 
@@ -28,8 +29,7 @@ public:
         if(type == XZ){
             float t;
             bool isFront;
-            const Normal normal = {0, -1, 0};
-            if(intersections::ray_plane(r, center, -normal, t, isFront)){
+            if(intersections::ray_plane(r, center, normal, t, isFront)){
                 Point ip = r.at(t);
                 if(ip.x < center.x - width/2.0f || ip.x > center.x + width/2.0f){
                     return ;
@@ -60,6 +60,8 @@ public:
 private:
     Axis type;
     Point center;
+    Point normal;
     float width;
     float height;
+
 };

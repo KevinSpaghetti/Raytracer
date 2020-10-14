@@ -11,7 +11,6 @@
 //Intersection tests must respect the min and max boundaries of the ray
 namespace intersections {
     //https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/geometry-of-a-triangle
-
     //Ray Triangle
     bool ray_triangle(const Ray& r, const Vertex& v1, const Vertex& v2, const Vertex& v3, float& t, float& u, float& v, bool& isFrontFace) {
 
@@ -46,12 +45,9 @@ namespace intersections {
     bool ray_plane(const Ray& r, const Point& center, const Normal& normal, float& t, bool& isFrontFace){
         //check if the point lies on the plane
         float angle = glm::dot(normal, r.getDirection());
-        if(abs(angle) > consts::epsilon){
+        if(abs(angle) > 0.00001){
             Point p0l0 = center - r.getOrigin();
             t = glm::dot(p0l0, normal) / angle;
-            if (t < 0) {
-                return false;
-            }
             if (t < r.getTmin() || t > r.getTmax()){
                 return false;
             }

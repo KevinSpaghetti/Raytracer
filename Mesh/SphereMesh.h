@@ -9,7 +9,7 @@
 class SphereMesh : public Mesh {
 public:
 
-    SphereMesh(glm::vec3 center, float radius) : center(center), radius(radius) {}
+    SphereMesh(float radius) : radius(radius) {}
 
     void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const override {
 
@@ -76,7 +76,7 @@ public:
     }
 
 private:
-    glm::vec3 center;
+    glm::vec3 center{0, 0, 0};
     float radius;
 
 };

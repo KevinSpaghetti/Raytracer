@@ -15,11 +15,12 @@ public:
 
     void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) const override {
         for (const auto object : visuals) {
+
             Ray t(object->transform_global().pointToObjectSpace(r.getOrigin()),
                   object->transform_global().directionToObjectSpace(r.getDirection()), r.getType());
 
             std::array<Intersection, 2> mesh_intersections;
-            int n_ins;
+            int n_ins = 0;
             object->getMesh()->intersect(t, mesh_intersections, n_ins);
             for(auto is = mesh_intersections.begin(); is != mesh_intersections.begin() + n_ins; ++is){
                 //Push back the object with the coords in object space

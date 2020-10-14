@@ -106,7 +106,7 @@ protected:
         return configuration.no_hit_material->emit(Intersection{}, r);
     }
 
-private:
+protected:
     Hittable* scene;
     SceneSamplerConfiguration configuration;
 };

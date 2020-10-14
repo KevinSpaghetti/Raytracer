@@ -19,6 +19,7 @@
 #include "Integrators/BackwardIntegrator.h"
 #include "Integrators/NormalDebugIntegrator.h"
 #include "SceneGraph/SceneList.h"
+#include "Integrators/DebugIntegrator.h"
 
 class Renderer {
 private:
