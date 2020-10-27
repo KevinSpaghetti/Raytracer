@@ -10,7 +10,7 @@ class TXTMaterial : public Material {
 public:
 
     virtual Color f(const Intersection &i, const Ray& wi, const Ray& wo) const override {
-        return textures.at("albedo")->value(i.uv);
+        return textures.at("albedo")->value(i.uv) / consts::pi;
     }
 
     bool scatters(const Intersection &i, const Ray &incoming) const override {

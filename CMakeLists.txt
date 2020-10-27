@@ -51,10 +51,8 @@ add_executable(Test
         Materials/SolidColorMaterial.h
         Materials/SkyMaterial.h
         Geom/ONB.h
-        Utils/PDF.h
-        SceneGraph/ImportanceSamplingEnabled.h
         SceneGraph/SceneList.h
-        Materials/PropsBasedObject.h Materials/PBRMaterial.h Integrators/BackwardIntegratorMIS.h Integrators/DebugIntegrator.h)
+        Materials/PropsBasedObject.h Materials/PBRMaterial.h Integrators/DebugIntegrator.h Samplers/Sampler.h Samplers/RandomSampler.h Samplers/ConstantSampler.h Samplers/StratifiedSampling.h SceneGraph/EmptyNode.h SceneGraph/VisualNode.h SceneGraph/LightNode.h SceneGraph/AreaLightNode.h SceneGraph/SphereLightNode.h SceneGraph/CameraNode.h)
 
 execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
 execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)

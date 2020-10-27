@@ -7,6 +7,7 @@
 #include <iostream>
 #include "../Geom/Intersection.h"
 #include "../Geom/ObjectIntersection.h"
+#include "../SceneGraph/VisualNode.h"
 
 class BVH : public Hittable {
 public:

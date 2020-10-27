@@ -22,9 +22,9 @@ public:
         type(Type::Unknown),
         origin({0, 0, 0}),
         direction({0, 0, 0}), //Dangerous when normalizing causes crash
-        tmin(0.001),
+        tmin(0.00001),
         tmax(+consts::infinity) {}
-    Ray(const Point origin, const Normal direction, const Type type = Type::Unknown, const float tmin = 0.0001, const float tmax = consts::infinity) :
+    Ray(const Point origin, const Normal direction, const Type type = Type::Unknown, const float tmin = 0.00001, const float tmax = consts::infinity) :
         type(type),
         origin(origin),
         direction(glm::normalize(direction)),

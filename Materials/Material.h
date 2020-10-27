@@ -8,7 +8,6 @@
 #include "../Geom/Intersection.h"
 #include "../Textures/ImageTexture.h"
 #include "PropsBasedObject.h"
-#include "../Utils/PDF.h"
 
 
 class Material : public PropsBasedObject {

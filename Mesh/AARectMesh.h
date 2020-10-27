@@ -13,9 +13,7 @@ class AARectMesh : public Mesh {
 public:
 
     enum Axis{
-        XZ,
-        YZ, //Not implemented
-        XY  //Not implemented
+        XZ
     };
 
     AARectMesh(const Axis type, const Point center, const Normal normal, const float width, const float height) :
@@ -37,7 +35,10 @@ public:
                 if(ip.z < center.z - height/2.0f || ip.z > center.z + height/2.0f){
                     return ;
                 }
-                UV uvs = ((ip - center) - Point{width, height, 0.0}) / Point{width, height, 0.0};
+                Point upper_left{center.x - width/2.0f, 0.0f, center.y - height/2.0f};
+                Point on_surface{ip - upper_left};
+                UV uvs = {on_surface.x / width, on_surface.z / height, 0.0f};
+                uvs.y = 1.0f - uvs.y;
                 n_intersections = 1;
                 intersections[0] = {ip, normal, t, uvs, isFront};
             }

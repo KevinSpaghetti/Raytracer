@@ -9,7 +9,6 @@
 
 #include "Integrator.h"
 #include "../Geom/Hittable.h"
-#include "../Utils/PDF.h"
 #include "../SceneGraph/SceneList.h"
 
 
@@ -25,11 +24,11 @@ public:
     BackwardIntegrator(Hittable* scene, SceneSamplerConfiguration  configuration) : scene(scene), configuration(std::move(configuration)) {}
 
     Color sample(const Ray &r) const override {
-        return glm::clamp(trace(r, 0), Point(0.0f), Point(1.0f));
+        return trace(r, 0);
     }
 
 private:
-    Color trace(const Ray& r, int ray_depth) const {
+    virtual Color trace(const Ray& r, int ray_depth) const {
 
         if(ray_depth > configuration.max_ray_depth){
             return maxRayDepthReached(r);
@@ -61,12 +60,13 @@ private:
             incoming = trace(scattered, ++ray_depth);
         }
 
+        const float p = 1.0f;
+
         //Direction where the light is coming (to the light)
         const Ray wi = scattered;
         Color brdf = material->f(intersection, wi, wo);
         //Compute the rendering equation with the material parameters
-        float lambert_law = abs(glm::dot(wi.getDirection(), glm::normalize(intersection.ws_normal)));
-        return emitted + (brdf * incoming * lambert_law);
+        return emitted + (brdf * incoming);
     }
 
 protected:
@@ -88,9 +88,12 @@ protected:
         if(intersections.empty()){
             return false;
         }
-
-        intersection = *std::min_element(intersections.begin(), intersections.end(), [&r](auto i1, auto i2){
-            return glm::length(r.getOrigin() - i1.point) < glm::length(r.getOrigin() - i2.point);
+        if(intersections.size() == 1){
+            intersection = intersections[0];
+            return true;
+        }
+        intersection = *std::min_element(intersections.begin(), intersections.end(), [](auto i1, auto i2){
+            return i1.t < i2.t;
         });
         return true;
     }

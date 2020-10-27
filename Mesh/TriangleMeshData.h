@@ -55,7 +55,10 @@ struct TriangleMeshData {
                 uv = (1.0f-u-v) * uv1 + u * uv2 + v * uv3;
                 uv.y = (1.0 - uv.y); //Invert the y axis
             }
-
+            if(glm::dot(r.getDirection(), nm) > 0.0){
+                isFrontFace = false;
+                nm = -nm;
+            }
             i = Intersection{
                 ip,
                 nm,

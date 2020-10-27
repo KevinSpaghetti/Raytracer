@@ -5,9 +5,9 @@
 #pragma once
 
 #include "../Geom/Hittable.h"
-#include "../Utils/PDF.h"
+#include "LightNode.h"
 
-class SceneList : public Hittable, public ImportanceSamplingEnabled {
+class SceneList : public Hittable {
 public:
     SceneList(const std::vector<VisualNode*> objects, const std::vector<LightNode*> lights)
         : visuals(objects),
@@ -22,40 +22,30 @@ public:
             std::array<Intersection, 2> mesh_intersections;
             int n_ins = 0;
             object->getMesh()->intersect(t, mesh_intersections, n_ins);
-            for(auto is = mesh_intersections.begin(); is != mesh_intersections.begin() + n_ins; ++is){
-                //Push back the object with the coords in object space
-                ObjectIntersection o{};
-                o.point = is->point;
-                o.normal = is->normal;
-                o.ws_point = object->transform_global().pointToWorldSpace(is->point);
-                o.ws_normal = object->transform_global().directionToWorldSpace(is->normal);
-                o.uv = is->uv;
-                o.t = is->t;
-                o.isFront = is->isFront;
-                o.node = object;
-                intersections.push_back(o);
+            if(n_ins > 0) {
+                for (int i = 0; i < n_ins; ++i) {
+                    //Push back the object with the coords in object space
+                    Intersection is = mesh_intersections[i];
+                    ObjectIntersection o{};
+                    o.point = is.point;
+                    o.normal = is.normal;
+                    o.ws_point = object->transform_global().pointToWorldSpace(is.point);
+                    o.ws_normal = glm::normalize(object->transform_global().directionToWorldSpace(is.normal));
+                    o.uv = is.uv;
+                    o.isFront = is.isFront;
+                    o.t = is.t;
+                    o.node = object;
+                    intersections.push_back(o);
+                }
             }
         }
     }
 
-    //For now when doing importance sampling pick a random light
-    //Return a random ray towards a random light
-    Color random(const Point &origin) const override {
+    LightNode* getLight(const ObjectIntersection& p) const {
         int random_index = static_cast<int>(randomized::scalar::random(0, lights.size()));
         LightNode *light = lights[random_index];
-        Ray r = light->randomPoint(origin);
-
-        ObjectIntersection intersection;
-        if(getClosestSceneIntersection(r, intersection)){
-            if(intersection.node == light){
-                //Calculate the light contribution
-                return Color{1.0, 1.0, 1.0};
-            }else{
-                return Color{0, 0.0, 0};
-            }
-        }
-        return Color{0.0, 0, 0};
-    }
+        return light;
+    };
 
 private:
     bool getClosestSceneIntersection(const Ray& r, ObjectIntersection& intersection) const {
@@ -73,7 +63,6 @@ private:
         });
         return true;
     }
-
 
 private:
     std::vector<VisualNode*> visuals;

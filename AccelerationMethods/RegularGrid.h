@@ -119,11 +119,12 @@ public:
         n_intersections = 0;
         while (!finished) {
             int id = cell.z * resolution.x * resolution.y + cell.y * resolution.x + cell.x;
-            Intersection closest{r.at(consts::infinity)};
+            Intersection closest{};
+            closest.t = {consts::infinity};
             for (TriangleInfo t : cells[id].overlaps) {
                 Intersection i;
                 if(data->test(r, t.tri, i)){
-                    if(glm::length(i.point - r.getOrigin()) < glm::length(closest.point - r.getOrigin())){
+                    if(i.t < closest.t){
                         closest = i;
                         n_intersections = 1;
                     }

@@ -78,8 +78,8 @@ public:
         update();
     }
     void scale(glm::vec3 axis) {
-        mScale = glm::scale(glm::mat4(1.0f), axis);
-        mScaleInverse = glm::scale(1.0f / axis);
+        mScale = glm::scale(glm::mat4(1.0f), glm::max(axis, glm::vec3{0.0001, 0.0001, 0.0001}));
+        mScaleInverse = glm::scale(1.0f / glm::max(axis, glm::vec3{0.0001, 0.0001, 0.0001}));
         update();
     }
     void rotate(glm::vec3 axis, float radians){

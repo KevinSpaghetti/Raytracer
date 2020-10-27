@@ -7,7 +7,7 @@
 #include "Material.h"
 #include "../Utils/Random.h"
 
-class Dielectric : public Material{
+class Dielectric : public Material {
 public:
     Dielectric(const Color albedo, const float index) : albedo(albedo), index(index) {}
 
@@ -27,17 +27,16 @@ public:
         }
 
         Normal unit_normal = glm::normalize(i.ws_normal);
-        Normal unit_direction = glm::normalize(-wo.getDirection());
 
-        float cos_theta = fminf(glm::dot(-unit_direction, unit_normal), 1.0);
-        float sin_theta = sqrtf(1.0f - cos_theta * cos_theta);
+        float cos_theta = glm::clamp(glm::dot(wo.getDirection(), unit_normal), -1.0f, 1.0f);
+        float sin_theta = sqrtf(std::max(0.0001f, 1.0f - cos_theta * cos_theta));
 
         bool cannot_refract = etai * sin_theta > 1.0f;
         Normal direction;
         if (cannot_refract || schlick(cos_theta, etai) > randomized::scalar::random(0.0f, 1.0f)) {
-            direction = glm::reflect(unit_direction, unit_normal);
+            direction = glm::reflect(-wo.getDirection(), unit_normal);
         }else{
-            direction = glm::refract(unit_direction, unit_normal, etai);
+            direction = refract(-wo.getDirection(), unit_normal, etai);
         }
         return Ray(i.ws_point, direction, Ray::Type::Transmission);
     }
@@ -50,11 +49,17 @@ public:
     }
 
 private:
-
+    static Point refract(const Point& uv, const Point& n, float etai_over_etat) {
+        float cos_theta = dot(-uv, n);
+        Point r_out_perp =  etai_over_etat * (uv + cos_theta*n);
+        float lt = glm::length(r_out_perp);
+        Point r_out_parallel = -sqrt(fabs(1.0f - lt*lt)) * n;
+        return r_out_perp + r_out_parallel;
+    }
     static float schlick(float cosine, float ref_idx) {
-        auto r0 = (1-ref_idx) / (1+ref_idx);
+        auto r0 = (1.0f-ref_idx) / (1.0f+ref_idx);
         r0 = r0*r0;
-        return r0 + (1-r0)*powf((1 - cosine), 5.0f);
+        return r0 + (1-r0)*powf((1.0f - cosine), 5.0f);
     }
 
     Color albedo;

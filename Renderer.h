@@ -20,6 +20,12 @@
 #include "Integrators/NormalDebugIntegrator.h"
 #include "SceneGraph/SceneList.h"
 #include "Integrators/DebugIntegrator.h"
+#include "Samplers/RandomSampler.h"
+#include "Samplers/StratifiedSampling.h"
+#include "SceneGraph/VisualNode.h"
+#include "SceneGraph/LightNode.h"
+#include "SceneGraph/CameraNode.h"
+#include "Samplers/ConstantSampler.h"
 
 class Renderer {
 private:
@@ -171,16 +177,20 @@ private:
     }
 
     void render_tile(Tile<Color> tile){
-        glm::vec2 tile_dimensions = tile.getDimensions();
+        //Needs to be local to the tile since samplers can have internal state
+        auto pixel_sampler{std::make_unique<StratifiedJitteredSampler>(configuration.pixel_samples)};
+        Point2D tile_dimensions = tile.getDimensions(); //dimensions of the tile in pixels
+        Point2D pixel_dimensions = 1.0f / (tile.getDimensions() * static_cast<float>(tile_number));
         for (int i = 0; i < tile_dimensions.y; ++i) {
             for (int j = 0; j < tile_dimensions.x; ++j) {
                 Color pixel_color{0, 0, 0};
+                Point2D pixel_upper_left_corner = (tile.getStart() + Point2D{j, i});
                 for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
-                    Point2D random_2D = {randomized::scalar::random(-1, 1), randomized::scalar::random(-1, 1)};
-                    Point2D sample_coords = (tile.getStart() + glm::vec2{j, i} + random_2D) / (tile.getDimensions() * static_cast<float>(tile_number));
+                    Point2D sampling_coords = pixel_sampler->generateSample(sample);
+                    Point2D sample_coords = (pixel_upper_left_corner + sampling_coords) * pixel_dimensions;
                     Ray r = active_camera->get(sample_coords.x, sample_coords.y);
 
-                    Color sample_color = sampler->sample(r);
+                    Color sample_color = glm::clamp(sampler->sample(r), 0.0f, 1.0f);
 
                     //Avoid bad samples killing the pixels
                     for (int k = 0; k < 3; ++k) {if(sample_color[k] != sample_color[k]) sample_color[k] = 0.0f;}

@@ -25,9 +25,12 @@ public:
     bool emits(const Intersection& i, const Ray& wo) const override {
         return true;
     };
-    //We can emit based on the distance from the ray origin
     Color emit(const Intersection& i, const Ray& wo) const override {
-        return c * intensity;
+        if(glm::dot(i.ws_normal, wo.getDirection()) > 0.0){
+            return c * intensity / i.t;
+        }else{
+            return {0, 0, 0};
+        }
     };
 
 private:

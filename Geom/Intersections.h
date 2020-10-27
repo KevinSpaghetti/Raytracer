@@ -13,13 +13,12 @@ namespace intersections {
     //https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/geometry-of-a-triangle
     //Ray Triangle
     bool ray_triangle(const Ray& r, const Vertex& v1, const Vertex& v2, const Vertex& v3, float& t, float& u, float& v, bool& isFrontFace) {
-
         glm::vec3 A = v2 - v1;
         glm::vec3 B = v3 - v1;
         glm::vec3 pvec = glm::cross(r.getDirection(), B);
         float det = glm::dot(A, pvec);
 
-        if(det < consts::epsilon) isFrontFace = false; //Backface culling
+        if(det < consts::epsilon) isFrontFace = false;
 
         if(fabs(det) < consts::epsilon) return false;
 
@@ -38,6 +37,7 @@ namespace intersections {
         if(t < r.getTmin() || t > r.getTmax()) {
             return false;
         }
+
         return true;
     }
 
