@@ -4,8 +4,16 @@ project(Raytracer)
 set(CMAKE_CXX_STANDARD 20)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
+find_package(Vulkan REQUIRED)
+
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_executable(Test
+        Libs/GLFW/include/GLFW/glfw3.h
+        C:/VulkanSDK/1.2.154.1/Include/vulkan/vulkan.h
         test.cpp
         Libs/stb_image.h
         Utils/Buffer.h
@@ -52,10 +60,25 @@ add_executable(Test
         Materials/SkyMaterial.h
         Geom/ONB.h
         SceneGraph/SceneList.h
-        Materials/PropsBasedObject.h Materials/PBRMaterial.h Integrators/DebugIntegrator.h Samplers/Sampler.h Samplers/RandomSampler.h Samplers/ConstantSampler.h Samplers/StratifiedSampling.h SceneGraph/EmptyNode.h SceneGraph/VisualNode.h SceneGraph/LightNode.h SceneGraph/AreaLightNode.h SceneGraph/SphereLightNode.h SceneGraph/CameraNode.h)
+        Materials/PropsBasedObject.h
+        Materials/PBRMaterial.h
+        Integrators/DebugIntegrator.h
+        Samplers/Sampler.h
+        Samplers/RandomSampler.h
+        Samplers/ConstantSampler.h
+        Samplers/StratifiedSampling.h
+        SceneGraph/EmptyNode.h
+        SceneGraph/VisualNode.h
+        SceneGraph/LightNode.h
+        SceneGraph/AreaLightNode.h
+        SceneGraph/SphereLightNode.h
+        SceneGraph/CameraNode.h)
 
-execute_process(COMMAND glslc ../Shaders/image.frag -o ../build/shaders/image.frag)
-execute_process(COMMAND glslc ../Shaders/vert.vert -o ../build/shaders/vert.vert)
+add_subdirectory(Libs/glfw)
 
-target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT} glfw vulkan)
+target_include_directories(Test PRIVATE C:/VulkanSDK/1.2.154.1/Include)
+
+target_link_libraries(Test glfw)
+target_link_libraries(Test Vulkan::Vulkan)
+target_link_libraries(Test ${CMAKE_THREAD_LIBS_INIT})
 target_compile_options(Test PRIVATE -g)

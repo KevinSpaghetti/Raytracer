@@ -5,8 +5,7 @@
 #pragma once
 
 #include "Mesh.h"
-
-//TODO: test uvs
+#include <array>
 
 //Class to represent an Axis Aligned rect
 class AARectMesh : public Mesh {

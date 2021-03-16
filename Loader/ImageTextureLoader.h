@@ -14,9 +14,9 @@
 class ImageTextureLoader : public Loader<ImageTexture> {
 public:
     ImageTexture load(std::string filename) const {
-        int width;
-        int height;
-        int channels;
+        int width = 0;
+        int height = 0;
+        int channels = 0;
         unsigned char *img = stbi_load(filename.c_str(), &width, &height, &channels, STBI_rgb);
         std::cout << filename << " Loaded with " << channels << " channels \n";
 

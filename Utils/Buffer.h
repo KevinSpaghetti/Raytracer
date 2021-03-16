@@ -11,6 +11,7 @@ template<class T>
 class Buffer {
 public:
     Buffer(int width, int height) : width(width), height(height){
+
         data = std::vector<std::vector<T>>(height);
         for (int i = 0; i < height; ++i) {
             data[i] = std::vector<T>(width);
