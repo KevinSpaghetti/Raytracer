@@ -16,7 +16,7 @@
 class WindowOutput {
 public:
     //Init Window and Vulkan instance
-    WindowOutput(const int width, const int height, const std::string title, const Buffer<Color>& buffer) {
+    WindowOutput(const int width, const int height, const std::string& title, const Buffer<Color>& buffer) {
         glfwInit();
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -169,7 +169,7 @@ public:
             swapchain_imageviews.push_back(iv);
         }
 
-        auto code = readShaderFile("./shaders/image.frag");
+        auto code = readShaderFile("./Shaders/image.frag");
         VkShaderModuleCreateInfo sdinfo{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
         sdinfo.codeSize = code.size();
         sdinfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
@@ -178,7 +178,7 @@ public:
             throw std::runtime_error("Failed to create shader module");
         }
 
-        code = readShaderFile("./shaders/vert.vert");
+        code = readShaderFile("./Shaders/vert.vert");
         VkShaderModuleCreateInfo sdtinfo = {VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
         sdtinfo.codeSize = code.size();
         sdtinfo.pCode = reinterpret_cast<const uint32_t*>(code.data());

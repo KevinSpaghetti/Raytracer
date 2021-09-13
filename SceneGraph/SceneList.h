@@ -7,11 +7,13 @@
 #include "../Geom/Hittable.h"
 #include "LightNode.h"
 
+//Primitive implementation of a scene graph where all the objects are store flatly in a list
+
 class SceneList : public Hittable {
 public:
-    SceneList(const std::vector<VisualNode*> objects, const std::vector<LightNode*> lights)
-        : visuals(objects),
-          lights(lights) {}
+    SceneList(std::vector<VisualNode*>&& objects, std::vector<LightNode*>&& lights)
+        : visuals(std::forward<std::vector<VisualNode*>>(objects)),
+          lights(std::forward<std::vector<LightNode*>>(lights)) {}
 
     void hit(const Ray& r, std::vector<ObjectIntersection>& intersections) const override {
         for (const auto object : visuals) {

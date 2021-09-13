@@ -52,7 +52,7 @@ private:
         if (material->emits(intersection, wo)){
             emitted = material->emit(intersection, wo);
         }
-        //If the material does not scatter light than the rendering equation 2nd term is always 0
+        //If the material does not scatter light then the rendering equation 2nd term is always 0
         Ray scattered{};
         Color incoming{0.0, 0.0, 0.0};
         if (material->scatters(intersection, wo)) {

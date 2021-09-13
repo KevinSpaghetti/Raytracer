@@ -10,7 +10,6 @@ template<class T>
 class Loader {
 public:
 
-
-    virtual T load(std::string path) const = 0;
+    virtual T load(const std::string& path) const = 0;
 
 };

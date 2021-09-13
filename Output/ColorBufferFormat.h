@@ -8,6 +8,6 @@
 
 class ColorBufferFormat {
 public:
-    virtual std::string serialize() = 0;
+    virtual std::string serialize() const = 0;
 
 };

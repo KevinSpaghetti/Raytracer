@@ -14,11 +14,10 @@
 
 class OBJLoader : public Loader<TriangleMesh> {
 public:
-    OBJLoader() {}
+    OBJLoader() = default;
 
     //Check if the indexing is 1 based or 0 based
-    TriangleMesh load(std::string filename) const override {
-        std::string full_path = filename;
+    TriangleMesh load(const std::string& filename) const override {
 
         std::vector<Vertex> vertices;
         //TODO: Add the support to faces with vertices with different 1/2/3
@@ -29,7 +28,7 @@ public:
         std::vector<UV> uvs;
 
         std::ifstream file;
-        file.open(full_path);
+        file.open(filename);
         std::string line;
         while(getline(file, line)) {
             std::istringstream tp(line);
@@ -91,6 +90,6 @@ public:
 
         file.close();
 
-        return TriangleMesh(std::move(vertices), std::move(triangles), std::move(normals), std::move(uvs));
+        return TriangleMesh{std::move(vertices), std::move(triangles), std::move(normals), std::move(uvs)};
     }
 };

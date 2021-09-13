@@ -11,7 +11,7 @@ public:
 
     BoxMesh(Point min, Point max) : min(min), max(max) {}
 
-    virtual void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const override {
+    void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const override {
 
         //points in which the ray enters and exits the box
         float tmin, tmax;
@@ -29,7 +29,7 @@ public:
     }
 
     AABB getSurroundingBox() const override {
-        return AABB(min, max);
+        return AABB{min, max};
     }
 
 private:

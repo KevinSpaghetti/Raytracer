@@ -42,10 +42,10 @@ public:
         }
     }
 
-    void add(const std::shared_ptr<Node> child){
+    void add(const std::shared_ptr<Node>& child){
         children.push_back(child);
     }
-    void remove(const std::shared_ptr<Node> child){
+    void remove(const std::shared_ptr<Node>& child){
         children.remove(child);
     }
 
@@ -78,7 +78,7 @@ public:
     }
 
     //Compute all the node's global transforms
-    static void computeGlobalTransforms(Node* root, GlobalTransform parent_global = GlobalTransform()){
+    static void computeGlobalTransforms(Node* root, const GlobalTransform& parent_global = GlobalTransform()){
         auto lcl = root->transform_local();
 
         root->set_transform_global(GlobalTransform::concat(parent_global, lcl));

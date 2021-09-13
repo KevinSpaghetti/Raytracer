@@ -6,14 +6,11 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 find_package(Vulkan REQUIRED)
 
-
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 add_executable(Test
-        Libs/GLFW/include/GLFW/glfw3.h
-        C:/VulkanSDK/1.2.154.1/Include/vulkan/vulkan.h
         test.cpp
         Libs/stb_image.h
         Utils/Buffer.h
@@ -73,8 +70,6 @@ add_executable(Test
         SceneGraph/AreaLightNode.h
         SceneGraph/SphereLightNode.h
         SceneGraph/CameraNode.h)
-
-add_subdirectory(Libs/glfw)
 
 target_include_directories(Test PRIVATE C:/VulkanSDK/1.2.154.1/Include)
 

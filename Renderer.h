@@ -38,25 +38,24 @@ private:
     } configuration;
 
 public:
-    enum RenderStage {
+    enum class RenderStage {
+        NotStarted,
         Started,
         Ended
     };
     struct RenderInfo {
         std::atomic<int> samples_completed = 0;
         int samples_needed = 0;
-        RenderStage stage;
+        RenderStage stage = RenderStage::NotStarted;
     } render_info;
 public:
 
-    Renderer() : configuration() {}
-
     //For now render only color
     //cam must be a pointer to CameraNode in the scene
-    void render(std::shared_ptr<Node> graph, Buffer<Color>& target, CameraNode* cam){
-        render_info.stage = Started;
+    void render(std::shared_ptr<Node> graph, Buffer<Color>& target, CameraNode* from_camera){
+        render_info.stage = RenderStage::Started;
         //Save the camera
-        active_camera = cam;
+        active_camera = from_camera;
         //Save the scene, process the graph and build the bvh
         scene = graph;
 
@@ -70,15 +69,12 @@ public:
         //Then we can start importance sampling by having
         //  A vector of lights and their positions
         //  An acceleration structure that we can sample for the nodes and the lights
-        //
-        //  Detach nodes like cameras and empty nodes?
         std::vector<LightNode*> lights;
         std::vector<VisualNode*> visuals;
 
         collectLights(scene.get(), lights);
         collectVisuals(scene.get(), visuals);
 
-        scene_list = std::make_shared<SceneList>(visuals, lights);
         bvh = std::make_shared<BVH>(visuals);
 
         //Divide the buffer in tiles
@@ -113,17 +109,18 @@ public:
 
         //Raytrace the scene
         std::vector<std::thread> workers;
+        workers.reserve(tiles.size());
 
         //Thread that updates the stats about the samples completed
-        auto updater = std::thread(&Renderer::update, this);
-        for (Tile<Color> tile : tiles){
+        auto updater_thread = std::thread(&Renderer::update, this);
+        for (const auto& tile : tiles){
             workers.emplace_back(std::thread(&Renderer::render_tile, this, tile));
         }
         for (std::thread& worker : workers){
             worker.join();
         }
-        render_info.stage = Ended;
-        updater.join();
+        render_info.stage = RenderStage::Ended;
+        updater_thread.join();
     }
 
     int& pixelsamples(){
@@ -141,7 +138,7 @@ public:
 
     void set_updater(const std::chrono::milliseconds interval, std::function<void(const RenderInfo&)> function){
         this->interval = interval;
-        updater = function;
+        updater = std::move(function);
     }
 
 private:
@@ -168,38 +165,40 @@ private:
     void update(){
         //We need to sleep the thread for seconds, or else the fast reads on samples_completed
         //block the other threads (the workers) from executing and we have a slow down
-        while(render_info.stage != Ended){
+        while(render_info.stage != RenderStage::Ended){
             std::this_thread::sleep_for(interval);
             //Call function
             updater(render_info);
         }
+        //Call once when the render is over
         updater(render_info);
     }
 
     void render_tile(Tile<Color> tile){
+        const Point2D tile_dimensions = tile.getDimensions(); //dimensions of the tile in pixels
+        const Point2D pixel_dimensions = 1.0f / (tile.getDimensions() * static_cast<float>(tile_number));
+
         //Needs to be local to the tile since samplers can have internal state
         auto pixel_sampler{std::make_unique<StratifiedJitteredSampler>(configuration.pixel_samples)};
-        Point2D tile_dimensions = tile.getDimensions(); //dimensions of the tile in pixels
-        Point2D pixel_dimensions = 1.0f / (tile.getDimensions() * static_cast<float>(tile_number));
-        for (int i = 0; i < tile_dimensions.y; ++i) {
-            for (int j = 0; j < tile_dimensions.x; ++j) {
+        for (int i = 0; i < static_cast<int>(tile_dimensions.y); ++i) {
+            for (int j = 0; j < static_cast<int>(tile_dimensions.x); ++j) {
                 Color pixel_color{0, 0, 0};
                 Point2D pixel_upper_left_corner = (tile.getStart() + Point2D{j, i});
                 for (int sample = 0; sample < configuration.pixel_samples; ++sample) {
-                    Point2D sampling_coords = pixel_sampler->generateSample(sample);
+                    Point2D sampling_coords = pixel_sampler->generateSample(sample); //Generate different sample coords base on different coordinates
                     Point2D sample_coords = (pixel_upper_left_corner + sampling_coords) * pixel_dimensions;
-                    Ray r = active_camera->get(sample_coords.x, sample_coords.y);
+                    Ray r = active_camera->get(sample_coords.x, sample_coords.y); //Get the ray that from the camera goes through the pixel
 
                     Color sample_color = glm::clamp(sampler->sample(r), 0.0f, 1.0f);
 
-                    //Avoid bad samples killing the pixels
+                    //Avoid bad samples killing the pixels (NaN != NaN) in float standard
                     for (int k = 0; k < 3; ++k) {if(sample_color[k] != sample_color[k]) sample_color[k] = 0.0f;}
                     pixel_color += sample_color;
                 }
                 tile(i, j) = pixel_color / static_cast<float>(configuration.pixel_samples);
             }
             //Update samples every line to avoid lock overhead
-            render_info.samples_completed += tile_dimensions.x * configuration.pixel_samples;
+            render_info.samples_completed += static_cast<int>(tile_dimensions.x * configuration.pixel_samples);
         }
     }
 
@@ -208,7 +207,6 @@ private:
     int tile_number = 4;
     CameraNode *active_camera;
     std::shared_ptr<Node> scene;
-    std::shared_ptr<SceneList> scene_list;
     std::shared_ptr<BVH> bvh;
 
 

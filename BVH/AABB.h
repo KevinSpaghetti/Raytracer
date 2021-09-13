@@ -21,7 +21,7 @@ public:
         min = {+consts::infinity, +consts::infinity, +consts::infinity};
         max = -min;
         //Grow the bounding box
-        for(Vertex v : points){
+        for(const auto v : points){
             for (int i = 0; i < 3; ++i) {
                 min[i] = std::min(min[i], v[i]);
             }
@@ -34,7 +34,7 @@ public:
 
     }
     //Construct a bounding box from the two passed
-    AABB(AABB a, AABB b){
+    AABB(const AABB& a, const AABB& b){
         Point small(fmin(a.getMin().x, b.getMin().x),
                    fmin(a.getMin().y, b.getMin().y),
                    fmin(a.getMin().z, b.getMin().z));
@@ -46,7 +46,7 @@ public:
     }
 
     //Grow this bbox
-    void grow(AABB b){
+    void grow(const AABB& b){
         Point small(fmin(min.x, b.getMin().x),
                     fmin(min.y, b.getMin().y),
                     fmin(min.z, b.getMin().z));
@@ -117,7 +117,7 @@ private:
     Point max;
 };
 
-AABB applyTransform(AABB box, GlobalTransform t){
+AABB applyTransform(const AABB box, const GlobalTransform t){
     Dimension extent = box.getMax() - box.getMin();
     Point min = box.getMin();
     Point max = box.getMax();
@@ -132,5 +132,5 @@ AABB applyTransform(AABB box, GlobalTransform t){
               t.pointToWorldSpace(max)
       });
 
-    return AABB(points);
+    return AABB{points};
 }

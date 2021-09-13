@@ -12,9 +12,9 @@
 
 class ColorBufferFormatPPM : public ColorBufferFormat {
 public:
-    ColorBufferFormatPPM(Buffer<Color> buffer) : buffer(buffer){};
+    ColorBufferFormatPPM(const Buffer<Color>& buffer) : buffer(buffer){};
 
-    std::string serialize() {
+    std::string serialize() const override {
         std::ostringstream result;
         result << "P3" << "\n";
         result << buffer.getWidth() << ' ' << buffer.getHeight() << '\n' << 255 << '\n';
@@ -32,5 +32,5 @@ public:
     };
 
 private:
-    Buffer<Color> buffer;
+    const Buffer<Color>& buffer;
 };

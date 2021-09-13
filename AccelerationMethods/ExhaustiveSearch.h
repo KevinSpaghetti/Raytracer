@@ -13,7 +13,7 @@ public:
 
     ExhaustiveSearch() = delete;
     ExhaustiveSearch(std::shared_ptr<TriangleMeshData> data) :
-        data(data) {}
+        data(std::move(data)) {}
 
     void intersect(const Ray& r, std::array<Intersection, 2>& intersections, int& n_intersections) const override {
         Intersection closest{r.at(consts::infinity)};

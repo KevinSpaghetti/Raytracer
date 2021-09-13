@@ -9,13 +9,12 @@
 
 class LightNode : public VisualNode {
 protected:
-    LightNode(const std::shared_ptr<Mesh> mesh,const std::shared_ptr<Material> material) : VisualNode(mesh, material) {}
+    LightNode(std::shared_ptr<Mesh>&& mesh, std::shared_ptr<Material>&& material) :
+        VisualNode(std::forward<std::shared_ptr<Mesh>>(mesh), std::shared_ptr<Material>(material)) {}
 
 public:
     Type type() const override {
         return Type::Light;
     }
-
-
 
 };

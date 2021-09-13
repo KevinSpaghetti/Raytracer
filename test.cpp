@@ -147,9 +147,9 @@ EmptyNode createSpheres(){
             Color{0.67, 0.36, 0.49},
             1.0, 1.2);
 
-    auto pot_geom = std::make_shared<TriangleMesh>(OBJLoader().load("teapot.obj"));
-    pot_geom->buildAccelerationStructure();
-    auto model = std::make_shared<VisualNode>(pot_geom, pbr);
+    //auto pot_geom = std::make_shared<TriangleMesh>(OBJLoader().load("teapot.obj"));
+    //pot_geom->buildAccelerationStructure();
+    //auto model = std::make_shared<VisualNode>(pot_geom, pbr);
 
     auto smallg = std::make_shared<SphereMesh>(0.5f);
     auto smallghollow = std::make_shared<SphereMesh>(-0.5f);
@@ -181,7 +181,7 @@ int main(){
     //int samples = 5;
     int depth = 5;
 
-    std::vector<int> sample_n{10, 10, 10};//{10, 64, 52, 1024};
+    std::vector<int> sample_n{1000, 10, 10};//{10, 64, 52, 1024};
     std::vector<float> lights_dim{0.001f, 0.25f, 0.5f, 0.75f ,1.0f};
 
     for (int i = 0; i < 1; ++i) {
@@ -196,7 +196,7 @@ int main(){
         auto aperture = 0.5f;
         float aspect_ratio = width / height;
         auto scene = std::make_shared<EmptyNode>();
-        scene->add(std::make_shared<EmptyNode>(createCornellBox(80, light_dim)));
+        scene->add(std::make_shared<EmptyNode>(createSpheres()));
         std::shared_ptr<CameraNode> camera = std::make_shared<CameraNode>(lookfrom, lookat, consts::up, 20,
                                                                           aspect_ratio, aperture, focus_distance);
         //We will pass the pointer to the node to the renderer to signal that this is
@@ -208,10 +208,10 @@ int main(){
         renderer.pixelsamples() = samples;
         renderer.maxraydepth() = depth;
         renderer.max_depth_material() = std::make_shared<SolidColorMaterial>(Color{0.0, 0.0, 0.0});
-        renderer.no_hit_material() = std::make_shared<SolidColorMaterial>(Color{0.0, 0.0, 0.0});
+        renderer.no_hit_material() = std::make_shared<SolidColorMaterial>(Color{0.4, 0.4, 0.4});
         //Updater gets called every n milliseconds
         renderer.set_updater(1000ms, [](const Renderer::RenderInfo &info) -> void {
-            if (info.stage != Renderer::Ended) {
+            if (info.stage != Renderer::RenderStage::Ended) {
                 std::cout << "\rCompleted " << info.samples_completed << "/" << info.samples_needed << "" << std::flush;
             } else {
                 std::cout << "\n";
@@ -224,12 +224,12 @@ int main(){
         std::cout << "Done \n";
 
         clock_t stop = clock();
-        double seconds_elapsed = (double) (stop - start) / CLOCKS_PER_SEC;
-        int minutes_elapsed = std::floor(seconds_elapsed) / 60;
+        double seconds_elapsed = static_cast<double>(stop - start) / CLOCKS_PER_SEC;
+        int minutes_elapsed = static_cast<int>(std::floor(seconds_elapsed)) / 60;
         printf("Render done in: %d minutes and %.5f seconds\n", minutes_elapsed,
                seconds_elapsed - minutes_elapsed * 60);
 
-        auto wo = WindowOutput(width, height, "Render", color);
+        //auto wo = WindowOutput(width, height, "Render", color);
 
         std::cout << "Writing Buffer \n";
         //Format the buffer for a ppm file format output

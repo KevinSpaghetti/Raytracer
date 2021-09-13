@@ -13,10 +13,11 @@
 //allows to pass around data easily
 struct TriangleMeshData {
 
-    TriangleMeshData(std::vector<Vertex> vertices, std::vector<Triangle> triangles, std::vector<Normal> normals, std::vector<UV> uvs) : vertices(vertices),
-            triangles(triangles),
-            normals(normals),
-            uvs(uvs) {}
+    TriangleMeshData(std::vector<Vertex>&& vertices, std::vector<Triangle>&& triangles, std::vector<Normal>&& normals, std::vector<UV>&& uvs) :
+            vertices(std::forward<std::vector<Vertex>>(vertices)),
+            triangles(std::forward<std::vector<Triangle>>(triangles)),
+            normals(std::forward<std::vector<Normal>>(normals)),
+            uvs(std::forward<std::vector<UV>>(uvs)) {}
 
     std::vector<Vertex> vertices;
     std::vector<Triangle> triangles;
@@ -53,7 +54,7 @@ struct TriangleMeshData {
                 UV uv2 = uvs[t.uvb];
                 UV uv3 = uvs[t.uvc];
                 uv = (1.0f-u-v) * uv1 + u * uv2 + v * uv3;
-                uv.y = (1.0 - uv.y); //Invert the y axis
+                uv.y = (1.0f - uv.y); //Invert the y axis
             }
             if(glm::dot(r.getDirection(), nm) > 0.0){
                 isFrontFace = false;

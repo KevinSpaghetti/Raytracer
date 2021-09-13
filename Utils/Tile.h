@@ -5,7 +5,6 @@
 #pragma once
 
 #include <iostream>
-#include <cmath>
 #include "Buffer.h"
 
 template<typename T>
@@ -18,12 +17,13 @@ public:
     //1 split: 2 Tiles
     //2 split: 4 Tiles
     static std::vector<Tile> split(Buffer<T>& r, int n){
-        int ntiles = pow(n, 2);
+        int ntiles = std::floor(std::pow(n, 2));
 
         std::cout << "Splitting in: " << ntiles << " tiles \n";
         std::cout << "Splitting Buffer: (" << 0 << ", " << 0 << ") : (" << r.getWidth() << ", " << r.getHeight() << ")\n";
 
         std::vector<Tile> tiles;
+        tiles.reserve(ntiles);
         if (n == 0 || n == 1){
             tiles.emplace_back(Tile<T>(r, {0, 0}, {r.getWidth(), r.getHeight()}));
             return tiles;
@@ -41,11 +41,10 @@ public:
         std::cout << "Tile width: " << tile_width << "\n";
         std::cout << "Tile height: " << tile_height << "\n";
 
-        tiles.reserve(ntiles);
         for (int i = 0; i < r.getWidth(); i += tile_width) {
             for (int j = 0; j < r.getHeight(); j += tile_height) {
-                Tile<T> t(r, {i, j}, {tile_width, tile_height});
-                tiles.push_back(t);
+                const Tile t(r, {i, j}, {tile_width, tile_height});
+                tiles.emplace_back(t);
             }
         }
 

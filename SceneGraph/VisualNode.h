@@ -11,7 +11,7 @@
 
 class VisualNode : public Node, public Boxable<AABB> {
 public:
-    VisualNode(const std::shared_ptr<Mesh> mesh, const std::shared_ptr<Material> material)
+    VisualNode(std::shared_ptr<Mesh>&& mesh, std::shared_ptr<Material>&& material)
             : mesh(mesh), material(material) {}
 
     Type type() const override {
@@ -42,7 +42,7 @@ public:
             intersections.push_back(o);
         }
 
-        for (auto child : children) {
+        for (const auto& child : children) {
             child->hit(r, intersections);
         }
 

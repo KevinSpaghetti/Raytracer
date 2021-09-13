@@ -18,8 +18,12 @@ public:
     TriangleMesh() = delete;
 
     //We want to copy the vectors to avoid modifications from third parties
-    TriangleMesh(std::vector<Vertex> vertices, std::vector<Triangle> triangles, std::vector<Normal> normals, std::vector<UV> uvs) :
-        data(std::make_shared<TriangleMeshData>(vertices, triangles, normals, uvs)),
+    TriangleMesh(std::vector<Vertex>&& vertices, std::vector<Triangle>&& triangles, std::vector<Normal>&& normals, std::vector<UV>&& uvs) :
+        data(std::make_shared<TriangleMeshData>(
+                std::forward<std::vector<Vertex>>(vertices),
+                std::forward<std::vector<Triangle>>(triangles),
+                std::forward<std::vector<Normal>>(normals),
+                std::forward<std::vector<UV>>(uvs))),
         box(buildSurroundingBox()),
         accelerator(std::make_unique<ExhaustiveSearch>(data)){}
 
@@ -40,7 +44,7 @@ public:
 
         //Add some thickness to the box in case the triangles lie on the same plane
         //the box would be with 0 thickness and the ray would never hit it
-        return AABB(obj_bbox);
+        return AABB{obj_bbox};
     }
     AABB getSurroundingBox() const override {
         return box;

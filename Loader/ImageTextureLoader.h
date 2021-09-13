@@ -13,7 +13,9 @@
 
 class ImageTextureLoader : public Loader<ImageTexture> {
 public:
-    ImageTexture load(std::string filename) const {
+    ImageTextureLoader() = default;
+
+    ImageTexture load(const std::string& filename) const override {
         int width = 0;
         int height = 0;
         int channels = 0;
@@ -26,16 +28,16 @@ public:
         int ptr = 0;
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
-                float r = static_cast<int>(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f);
-                float g = static_cast<int>(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f);
-                float b = static_cast<int>(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f);
+                auto r = static_cast<float>(std::floor(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f));
+                auto g = static_cast<float>(std::floor(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f));
+                auto b = static_cast<float>(std::floor(img[ptr++]) * (1.0f - 0.0f) / (255.0f - 0.0f));
                 data(i, j) = {r, g, b};
             }
         }
 
         stbi_image_free(img);
 
-        return ImageTexture(std::move(data));
+        return ImageTexture{std::move(data)};
     }
 
 };

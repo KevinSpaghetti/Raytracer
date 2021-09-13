@@ -23,13 +23,9 @@ public:
         return Ray(origin, glm::normalize(random_point - origin), Ray::Type::Shadow);
     }
 
-    Color random(const Point &origin) const override {
-        return {0, 0, 0};
-    }
-
 
 protected:
     float radius;
 
-    Point center;
+    Point center; //center for our local space
 };

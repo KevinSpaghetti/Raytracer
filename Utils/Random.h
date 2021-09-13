@@ -38,7 +38,7 @@ namespace randomized {
         static glm::vec3 unit_vector() {
             auto a = randomized::scalar::random(0, 2*consts::pi);
             auto z = randomized::scalar::random(-1, 1);
-            auto r = sqrt(1 - z*z);
+            auto r = std::sqrt(1 - z*z);
             return glm::vec3{r*cos(a), r*sin(a), z};
         }
         static glm::vec3 in_unit_disk(){
@@ -62,10 +62,10 @@ namespace randomized {
             auto z = sqrtf(1.0f-r2);
 
             auto phi = 2*consts::pi*r1;
-            auto x = cos(phi)*sqrt(r2);
-            auto y = sin(phi)*sqrt(r2);
+            auto x = std::cos(phi)*std::sqrt(r2);
+            auto y = std::sin(phi)*std::sqrt(r2);
 
-            return glm::vec3(x, y, z);
+            return {x, y, z};
         }
     }
 

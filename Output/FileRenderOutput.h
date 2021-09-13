@@ -12,7 +12,7 @@
 
 class FileRenderOutput : public RenderOutput {
 public:
-    FileRenderOutput(std::string filename, std::string base_path = "./") : filename(filename), base_path(base_path) {};
+    FileRenderOutput(std::string filename, std::string base_path = "./") : filename(std::move(filename)), base_path(std::move(base_path)) {};
 
     void write(ColorBufferFormat& format) const override {
         std::string fullpath = base_path + filename;

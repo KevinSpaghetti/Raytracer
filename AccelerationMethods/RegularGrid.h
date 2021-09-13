@@ -23,11 +23,11 @@ public:
         std::vector<TriangleInfo> tinfo;
 
         int index = 0;
-        for(Triangle t : data->triangles) {
+        for(auto t : data->triangles) {
             Vertex v1 = data->vertices[t.vta];
             Vertex v2 = data->vertices[t.vtb];
             Vertex v3 = data->vertices[t.vtc];
-            AABB tbox = AABB(std::vector({v1, v2, v3}));
+            auto tbox = AABB(std::vector({v1, v2, v3}));
             box = AABB(box, tbox);
             //Add the triangle info to the cells
             tinfo.push_back({

@@ -66,7 +66,7 @@ public:
         float epsilon = randomized::scalar::random();
         float theta = glm::atan(alpha*sqrt(epsilon) / sqrt(1.0f - epsilon));
 
-        Direction supp = (fabs(i.ws_normal.x > 0.9)) ? Direction{0, 1, 0} : Direction{1, 0, 0};
+        Direction supp = (i.ws_normal.x > 0.9) ? Direction{0, 1, 0} : Direction{1, 0, 0};
         Direction axis1 = glm::normalize(glm::cross(i.ws_normal, supp));
         Direction axis2 = glm::cross(i.ws_normal, axis1);
 
@@ -79,7 +79,7 @@ public:
 
         Direction generated = glm::reflect(-wo.getDirection(), glm::normalize(halfway));
 
-        return Ray(i.ws_point, generated, Ray::Type::Specular);
+        return Ray{i.ws_point, generated, Ray::Type::Specular};
     }
 
     bool emits(const Intersection &i, const Ray &wo) const override {
