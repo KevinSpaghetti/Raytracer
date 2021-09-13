@@ -2,3 +2,5 @@
 /.vs/
 /out/
 /Libs/
+/cmake-build-debug/
+/.idea/
