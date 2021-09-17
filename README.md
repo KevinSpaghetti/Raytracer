@@ -13,12 +13,16 @@ Some of the things added are:
 
 ## Pictures generated
 
+![suzanne with 1024 samples](images/render1024s5Suzanne.jpg)
+
 Pictures generated with a debug integrator that samples the normals and one that samples the colors.
 
 ![NormalDebugIntegrator](./images/NormalDebugIntegrator.png)
 ![BackwardIntegrator](./images/BackwardIntegrator.png)
 
 The typical raytracing noise can be seen in the second picture that has been rendered with a low number of samples. 
+
+![glass with 512](images/render512s5Glass.jpg)
 
 ## Info
 
